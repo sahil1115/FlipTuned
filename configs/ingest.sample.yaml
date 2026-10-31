@@ -1,0 +1,49 @@
+# Sample ingest config: synthetic fixtures only. Copy to configs/local/ for real data.
+kind: ingest
+name: fixtures
+sources:
+  - path: ../tests/fixtures/qa_basic.csv
+    format: csv
+    columns:
+      question: question
+      answer: answer
+      id: id
+      tags: tags
+      category: category
+      status: status
+  - path: ../tests/fixtures/qa_crlf.csv
+    format: csv
+    columns:
+      question: Question
+      answer: Answer
+  - path: ../tests/fixtures/qa.xlsx
+    format: xlsx
+    sheet: QA
+    columns:
+      question: question
+      answer: answer
+      group: group
+  - path: ../tests/fixtures/notes.md
+    format: md
+    delimiters:
+      question_prefix: "Q:"
+      answer_prefix: "A:"
+  - path: ../tests/fixtures/notes.txt
+    format: txt
+  - path: ../tests/fixtures/secrets.csv
+    format: csv
+    columns:
+      question: question
+      answer: answer
+  - path: ../tests/fixtures/malformed.csv
+    format: csv
+    columns:
+      question: question
+      answer: answer
+  - path: ../tests/fixtures/bad_encoding.csv
+    format: csv
+    columns:
+      question: question
+      answer: answer
+privacy:
+  policy: exclude

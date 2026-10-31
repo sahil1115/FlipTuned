@@ -1,0 +1,137 @@
+# General-regression set (SPEC §12.1): synthetic, general coding prompts with static checks.
+# Both the base and the fine-tuned model answer each prompt; a drop in the pass rate shows the
+# fine-tune hurt general ability. Patterns are case-insensitive regexes, searched in the answer's
+# code blocks when `code: true`, otherwise in the whole answer. Keep checks generous: they look
+# for a plausible answer shape, not one exact solution.
+version: 1
+items:
+  - id: reg_01
+    category: python
+    prompt: >-
+      Write a Python function `is_palindrome(text: str) -> bool` that ignores case and
+      non-alphanumeric characters. Give a one-sentence explanation and one code block.
+    expect: {code: true, language: python, required: ['def\s+is_palindrome\s*\(']}
+  - id: reg_02
+    category: python
+    prompt: >-
+      In Python, how do I read a UTF-8 text file line by line without loading it all into
+      memory? Show a short code example.
+    expect: {code: true, language: python, required: ['open\s*\(', 'for\s+\w+\s+in\b']}
+  - id: reg_03
+    category: python
+    prompt: >-
+      Write a Python function `chunks(items, size)` that yields successive lists of at most
+      `size` items. Include one code block.
+    expect: {code: true, language: python, required: ['def\s+chunks\s*\(', '\byield\b']}
+  - id: reg_04
+    category: python
+    prompt: >-
+      How do I parse a JSON string into a Python dictionary safely? Show a code example that
+      handles invalid input.
+    expect:
+      code: true
+      language: python
+      required: ['json\.loads\s*\(', '\bexcept\b']
+      forbidden: ['\beval\s*\(']
+  - id: reg_05
+    category: python
+    prompt: >-
+      Show how to run an external command from Python with a list of arguments and capture its
+      output, without using a shell.
+    expect:
+      code: true
+      language: python
+      required: ['subprocess\.']
+      forbidden: ['shell\s*=\s*True', 'os\.system\s*\(']
+  - id: reg_06
+    category: python
+    prompt: >-
+      Write a Python dataclass `Point` with float fields `x` and `y` and a method `distance_to`
+      that returns the Euclidean distance to another point.
+    expect: {code: true, language: python, required: ['@dataclass', 'class\s+Point\b', 'def\s+distance_to\s*\(']}
+  - id: reg_07
+    category: python
+    prompt: >-
+      Write a pytest test function for a function `add(a, b)` that returns the sum of two
+      numbers. Show only the test code in one code block.
+    expect: {code: true, language: python, required: ['def\s+test_\w*\s*\(', '\bassert\b']}
+  - id: reg_08
+    category: python
+    prompt: >-
+      How do I count how often each word appears in a list of words in Python? Show a short
+      example.
+    expect: {code: true, language: python, required: ['Counter|\bdict\b|\{\s*\}|defaultdict']}
+  - id: reg_09
+    category: javascript
+    prompt: >-
+      Write a JavaScript function `debounce(fn, waitMs)` that delays calling `fn` until
+      `waitMs` milliseconds have passed since the last call.
+    expect: {code: true, language: javascript, required: ['debounce', 'setTimeout\s*\(', 'clearTimeout\s*\(']}
+  - id: reg_10
+    category: javascript
+    prompt: >-
+      In JavaScript, how do I fetch JSON from a URL with async/await and handle a non-OK HTTP
+      status? Show a code example.
+    expect: {code: true, language: javascript, required: ['\bawait\b', 'fetch\s*\(', '\.ok\b|status']}
+  - id: reg_11
+    category: typescript
+    prompt: >-
+      Write a TypeScript interface `User` with `id: number`, `name: string` and an optional
+      `email`, and a function that returns the display name of a user.
+    expect: {code: true, language: typescript, required: ['interface\s+User\b', 'email\s*\?\s*:']}
+  - id: reg_12
+    category: sql
+    prompt: >-
+      Write a SQL query that returns the number of orders per customer from a table
+      `orders(customer_id, order_id, created_at)`, highest count first.
+    expect: {code: true, language: sql, required: ['select', 'count\s*\(', 'group\s+by', 'order\s+by']}
+  - id: reg_13
+    category: sql
+    prompt: >-
+      Show how to insert a row into a SQLite table from Python using a parameterized query
+      instead of string formatting.
+    expect:
+      code: true
+      language: python
+      required: ['execute\s*\(', '\?|:\w+']
+      forbidden: ['execute\s*\(\s*f["'']', '%\s*\(']
+  - id: reg_14
+    category: bash
+    prompt: >-
+      Write a Bash command that finds all `.log` files under the current directory that were
+      modified in the last 7 days.
+    expect: {code: true, language: bash, required: ['\bfind\b', '\.log', '-mtime|-newermt']}
+  - id: reg_15
+    category: bash
+    prompt: >-
+      Write a short Bash script that exits with an error message if the first argument is
+      missing, and otherwise prints it.
+    expect: {code: true, language: bash, required: ['\$1|\$\{1', '\bexit\b', '\becho\b|\bprintf\b']}
+  - id: reg_16
+    category: json
+    prompt: >-
+      Write a JSON object describing a user with a string field `name`, a number field `age`
+      and an array of strings `tags`. Reply with one json code block only.
+    expect: {code: true, language: json, required: ['"name"', '"age"', '"tags"']}
+  - id: reg_17
+    category: go
+    prompt: >-
+      Write a Go function `Reverse(s string) string` that reverses a string correctly for
+      Unicode text.
+    expect: {code: true, language: go, required: ['func\s+Reverse\s*\(', '\brune\b']}
+  - id: reg_18
+    category: rust
+    prompt: >-
+      Write a Rust function that returns the largest number in a slice of i32, or None if the
+      slice is empty.
+    expect: {code: true, language: rust, required: ['\bfn\s+\w+', 'Option\s*<\s*i32\s*>|Option<&i32>']}
+  - id: reg_19
+    category: java
+    prompt: >-
+      Write a Java method that returns true if a string is null or contains only whitespace.
+    expect: {code: true, language: java, required: ['\bboolean\b', 'null', 'trim\s*\(|isBlank\s*\(|isWhitespace']}
+  - id: reg_20
+    category: concepts
+    prompt: >-
+      In two short paragraphs, explain the difference between a process and a thread. No code.
+    expect: {code: false, required: ['\bprocess', '\bthread', 'memory']}

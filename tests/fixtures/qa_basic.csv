@@ -1,0 +1,31 @@
+id,question,answer,tags,category,status
+Q-001,How do I validate input in Python?,"Use an explicit schema and return useful errors.
+
+```python
+from pydantic import BaseModel
+
+class User(BaseModel):
+    name: str
+```
+","python, validation",coding,approved
+Q-002,How should I name boolean variables?,"Prefix them with `is_`, `has_` or `can_` so the meaning reads naturally, e.g. `is_active`.",style,conventions,approved
+Q-003,What is our rule for logging request bodies?,"Never log request bodies. Log the request ID, route and status code instead.",logging,conventions,pending
+Q-004,How do I read a file safely in Python?,"Open it with a context manager and an explicit encoding:
+
+```python
+with open(path, encoding=""utf-8"") as handle:
+    data = handle.read()
+```",python,coding,approved
+Q-004,How do I format dates for the API?,"Use ISO 8601 in UTC, for example `2024-05-01T12:00:00Z`.",api,conventions,approved
+Q-006,How should I name  boolean variables?,"Prefix them with `is_`, `has_` or `can_` so the meaning reads naturally, e.g. `is_active`.",style,conventions,approved
+Q-007,Which linter do we use for TypeScript?,   ,typescript,tooling,approved
+Q-008,Run the migrations before starting the server.,When should I run database migrations?,database,operations,approved
+,,,,,
+Q-009,How do I write a café-safe Unicode string ✓?,"Python 3 strings are Unicode already: `s = ""café ✓""`. Encode explicitly when writing bytes.",python; unicode,coding,rejected
+Q-010,How do I list files recursively?,"Use pathlib:
+
+```python
+for p in Path('.').rglob('*'):
+    print(p)
+",python,coding,approved
+Q-011,Ok?,y,,misc,approved

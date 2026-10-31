@@ -1,0 +1,41 @@
+# Local data and experiments (never committed)
+.dev-home/
+.scratch/
+configs/local/
+outputs/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Frontend
+node_modules/
+src/fliptuned/web_dist/
+web/dist/
+playwright-report/
+test-results/
+
+# Training artifacts and model weights
+checkpoints/
+checkpoint-*/
+*.safetensors
+*.bin
+*.npz
+*.gguf
+*.pt
+*.pth
+*.ckpt
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

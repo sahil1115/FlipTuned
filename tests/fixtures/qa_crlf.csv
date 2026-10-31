@@ -1,0 +1,9 @@
+Question,Answer
+How do I join paths portably?,"Use pathlib:
+
+```python
+from pathlib import Path
+config = Path.home() / "".app"" / ""config.yaml""
+```"
+What line endings do we commit?,"LF for text files; CRLF only for .cmd, .bat and .ps1."
+How do I check the exit code in PowerShell?,Read `$LASTEXITCODE` right after the command.

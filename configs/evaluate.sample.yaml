@@ -1,0 +1,14 @@
+# Sample evaluation config: the SPEC §12.3 default acceptance criteria.
+kind: evaluate
+acceptance:
+  min_test_items: 50
+  min_review_coverage: 1.0
+  min_non_tied_pairs: 20
+  sign_test_alpha: 0.05
+  max_category_net_loss_share: 0.20
+  max_deterministic_drop_pts: 2.0
+  max_regression_set_drop_pts: 5.0
+generation:
+  max_new_tokens: 512
+include_regression_set: true
+review_seed: 1234

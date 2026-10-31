@@ -1,0 +1,8 @@
+General reminder: keep the runbook up to date.
+
+Q: How long do we keep build logs?
+A: Thirty days, then they are deleted automatically.
+
+Q: Who approves production deploys?
+A: The on-call engineer for the service.
+They confirm in the deploy channel first.

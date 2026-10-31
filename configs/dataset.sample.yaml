@@ -1,0 +1,14 @@
+# Sample dataset build config: every ingested source, sequence length measured with the tiny
+# test model's tokenizer (source_ids empty = all sources).
+kind: dataset
+name: fixtures
+model_catalog_id: tiny-qwen2
+split:
+  train: 0.8
+  valid: 0.1
+  test: 0.1
+seed: 42
+max_seq_length: 1024
+thresholds:
+  min_train_examples_warn: 200
+  min_test_examples_conclusive: 50

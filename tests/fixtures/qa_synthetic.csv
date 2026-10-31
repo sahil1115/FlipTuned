@@ -1,0 +1,340 @@
+id,question,answer,category,status,group,thread
+S-0001,How do I read a config file in Python?,"In Python, load it once at startup, validate every field and fail fast with a clear message.",coding,approved,G-00,
+S-0002,What is our Python convention to read a config file?,"Our Python convention: load it once at startup, validate every field and fail fast with a clear message. Link the decision record in the PR description.",coding,approved,G-00,
+S-0003,How do I read a config file in TypeScript?,"In TypeScript, load it once at startup, validate every field and fail fast with a clear message.
+
+```ts
+// example: read a config file
+```",coding,approved,G-00,
+S-0004,What is our TypeScript convention to read a config file?,"Our TypeScript convention: load it once at startup, validate every field and fail fast with a clear message. Link the decision record in the PR description.",coding,approved,G-00,
+S-0005,How do I read a config file in Go?,"In Go, load it once at startup, validate every field and fail fast with a clear message.",coding,pending,G-00,
+S-0006,What is our Go convention to read a config file?,"Our Go convention: load it once at startup, validate every field and fail fast with a clear message. Link the decision record in the PR description.
+
+```go
+// example: read a config file
+```",coding,approved,G-00,
+S-0007,How do I read a config file in Rust?,"In Rust, load it once at startup, validate every field and fail fast with a clear message.",coding,rejected,G-00,
+S-0008,What is our Rust convention to read a config file?,"Our Rust convention: load it once at startup, validate every field and fail fast with a clear message. Link the decision record in the PR description.",coding,approved,G-00,
+S-0009,How do I read a config file in SQL?,"In SQL, load it once at startup, validate every field and fail fast with a clear message.
+
+```sql
+// example: read a config file
+```",coding,approved,G-00,
+S-0010,What is our SQL convention to read a config file?,"Our SQL convention: load it once at startup, validate every field and fail fast with a clear message. Link the decision record in the PR description.",coding,approved,G-00,
+S-0011,How do I read a config file in Bash?,"In Bash, load it once at startup, validate every field and fail fast with a clear message.",coding,approved,G-00,
+S-0012,What is our Bash convention to read a config file?,"Our Bash convention: load it once at startup, validate every field and fail fast with a clear message. Link the decision record in the PR description.
+
+```bash
+// example: read a config file
+```",coding,approved,G-00,
+S-0013,How do I log an error in Python?,"In Python, log the error type, a request ID and the operation name, never the payload.",conventions,approved,,T-01-python
+S-0014,What is our Python convention to log an error?,"Our Python convention: log the error type, a request ID and the operation name, never the payload. Link the decision record in the PR description.",conventions,approved,,T-01-python
+S-0015,How do I log an error in TypeScript?,"In TypeScript, log the error type, a request ID and the operation name, never the payload.
+
+```ts
+// example: log an error
+```",conventions,approved,,T-01-ts
+S-0016,What is our TypeScript convention to log an error?,"Our TypeScript convention: log the error type, a request ID and the operation name, never the payload. Link the decision record in the PR description.",conventions,approved,,T-01-ts
+S-0017,How do I log an error in Go?,"In Go, log the error type, a request ID and the operation name, never the payload.",conventions,approved,,T-01-go
+S-0018,What is our Go convention to log an error?,"Our Go convention: log the error type, a request ID and the operation name, never the payload. Link the decision record in the PR description.
+
+```go
+// example: log an error
+```",conventions,approved,,T-01-go
+S-0019,How do I log an error in Rust?,"In Rust, log the error type, a request ID and the operation name, never the payload.",conventions,approved,,T-01-rust
+S-0020,What is our Rust convention to log an error?,"Our Rust convention: log the error type, a request ID and the operation name, never the payload. Link the decision record in the PR description.",conventions,approved,,T-01-rust
+S-0021,How do I log an error in SQL?,"In SQL, log the error type, a request ID and the operation name, never the payload.
+
+```sql
+// example: log an error
+```",conventions,approved,,T-01-sql
+S-0022,What is our SQL convention to log an error?,"Our SQL convention: log the error type, a request ID and the operation name, never the payload. Link the decision record in the PR description.",conventions,pending,,T-01-sql
+S-0023,How do I log an error in Bash?,"In Bash, log the error type, a request ID and the operation name, never the payload.",conventions,approved,,T-01-bash
+S-0024,What is our Bash convention to log an error?,"Our Bash convention: log the error type, a request ID and the operation name, never the payload. Link the decision record in the PR description.
+
+```bash
+// example: log an error
+```",conventions,approved,,T-01-bash
+S-0025,How do I write a unit test in Python?,"In Python, test one behaviour per test, name it after the behaviour and keep fixtures synthetic.",testing,approved,,
+S-0026,What is our Python convention to write a unit test?,"Our Python convention: test one behaviour per test, name it after the behaviour and keep fixtures synthetic. Link the decision record in the PR description.",testing,approved,,
+S-0027,How do I write a unit test in TypeScript?,"In TypeScript, test one behaviour per test, name it after the behaviour and keep fixtures synthetic.
+
+```ts
+// example: write a unit test
+```",testing,approved,,
+S-0028,What is our TypeScript convention to write a unit test?,"Our TypeScript convention: test one behaviour per test, name it after the behaviour and keep fixtures synthetic. Link the decision record in the PR description.",testing,approved,,
+S-0029,How do I write a unit test in Go?,"In Go, test one behaviour per test, name it after the behaviour and keep fixtures synthetic.",testing,approved,,
+S-0030,What is our Go convention to write a unit test?,"Our Go convention: test one behaviour per test, name it after the behaviour and keep fixtures synthetic. Link the decision record in the PR description.
+
+```go
+// example: write a unit test
+```",testing,rejected,,
+S-0031,How do I write a unit test in Rust?,"In Rust, test one behaviour per test, name it after the behaviour and keep fixtures synthetic.",testing,approved,,
+S-0032,What is our Rust convention to write a unit test?,"Our Rust convention: test one behaviour per test, name it after the behaviour and keep fixtures synthetic. Link the decision record in the PR description.",testing,approved,,
+S-0033,How do I write a unit test in SQL?,"In SQL, test one behaviour per test, name it after the behaviour and keep fixtures synthetic.
+
+```sql
+// example: write a unit test
+```",testing,approved,,
+S-0034,What is our SQL convention to write a unit test?,"Our SQL convention: test one behaviour per test, name it after the behaviour and keep fixtures synthetic. Link the decision record in the PR description.",testing,approved,,
+S-0035,How do I write a unit test in Bash?,"In Bash, test one behaviour per test, name it after the behaviour and keep fixtures synthetic.",testing,approved,,
+S-0036,What is our Bash convention to write a unit test?,"Our Bash convention: test one behaviour per test, name it after the behaviour and keep fixtures synthetic. Link the decision record in the PR description.
+
+```bash
+// example: write a unit test
+```",testing,approved,,
+S-0037,How do I handle a timeout in Python?,"In Python, set an explicit timeout on every network call and retry only idempotent requests.",operations,approved,G-03,
+S-0038,What is our Python convention to handle a timeout?,Our Python convention: set an explicit timeout on every network call and retry only idempotent requests. Link the decision record in the PR description.,operations,approved,G-03,
+S-0039,How do I handle a timeout in TypeScript?,"In TypeScript, set an explicit timeout on every network call and retry only idempotent requests.
+
+```ts
+// example: handle a timeout
+```",operations,pending,G-03,
+S-0040,What is our TypeScript convention to handle a timeout?,Our TypeScript convention: set an explicit timeout on every network call and retry only idempotent requests. Link the decision record in the PR description.,operations,approved,G-03,
+S-0041,How do I handle a timeout in Go?,"In Go, set an explicit timeout on every network call and retry only idempotent requests.",operations,approved,G-03,
+S-0042,What is our Go convention to handle a timeout?,"Our Go convention: set an explicit timeout on every network call and retry only idempotent requests. Link the decision record in the PR description.
+
+```go
+// example: handle a timeout
+```",operations,approved,G-03,
+S-0043,How do I handle a timeout in Rust?,"In Rust, set an explicit timeout on every network call and retry only idempotent requests.",operations,approved,G-03,
+S-0044,What is our Rust convention to handle a timeout?,Our Rust convention: set an explicit timeout on every network call and retry only idempotent requests. Link the decision record in the PR description.,operations,approved,G-03,
+S-0045,How do I handle a timeout in SQL?,"In SQL, set an explicit timeout on every network call and retry only idempotent requests.
+
+```sql
+// example: handle a timeout
+```",operations,approved,G-03,
+S-0046,What is our SQL convention to handle a timeout?,Our SQL convention: set an explicit timeout on every network call and retry only idempotent requests. Link the decision record in the PR description.,operations,approved,G-03,
+S-0047,How do I handle a timeout in Bash?,"In Bash, set an explicit timeout on every network call and retry only idempotent requests.",operations,approved,G-03,
+S-0048,What is our Bash convention to handle a timeout?,"Our Bash convention: set an explicit timeout on every network call and retry only idempotent requests. Link the decision record in the PR description.
+
+```bash
+// example: handle a timeout
+```",operations,approved,G-03,
+S-0049,How do I name a function in Python?,"In Python, use a verb phrase that says what it does, such as load_user or send_invoice.",conventions,approved,,T-04-python
+S-0050,What is our Python convention to name a function?,"Our Python convention: use a verb phrase that says what it does, such as load_user or send_invoice. Link the decision record in the PR description.",conventions,approved,,T-04-python
+S-0051,How do I name a function in TypeScript?,"In TypeScript, use a verb phrase that says what it does, such as load_user or send_invoice.
+
+```ts
+// example: name a function
+```",conventions,approved,,T-04-ts
+S-0052,What is our TypeScript convention to name a function?,"Our TypeScript convention: use a verb phrase that says what it does, such as load_user or send_invoice. Link the decision record in the PR description.",conventions,approved,,T-04-ts
+S-0053,How do I name a function in Go?,"In Go, use a verb phrase that says what it does, such as load_user or send_invoice.",conventions,rejected,,T-04-go
+S-0054,What is our Go convention to name a function?,"Our Go convention: use a verb phrase that says what it does, such as load_user or send_invoice. Link the decision record in the PR description.
+
+```go
+// example: name a function
+```",conventions,approved,,T-04-go
+S-0055,How do I name a function in Rust?,"In Rust, use a verb phrase that says what it does, such as load_user or send_invoice.",conventions,approved,,T-04-rust
+S-0056,What is our Rust convention to name a function?,"Our Rust convention: use a verb phrase that says what it does, such as load_user or send_invoice. Link the decision record in the PR description.",conventions,pending,,T-04-rust
+S-0057,How do I name a function in SQL?,"In SQL, use a verb phrase that says what it does, such as load_user or send_invoice.
+
+```sql
+// example: name a function
+```",conventions,approved,,T-04-sql
+S-0058,What is our SQL convention to name a function?,"Our SQL convention: use a verb phrase that says what it does, such as load_user or send_invoice. Link the decision record in the PR description.",conventions,approved,,T-04-sql
+S-0059,How do I name a function in Bash?,"In Bash, use a verb phrase that says what it does, such as load_user or send_invoice.",conventions,approved,,T-04-bash
+S-0060,What is our Bash convention to name a function?,"Our Bash convention: use a verb phrase that says what it does, such as load_user or send_invoice. Link the decision record in the PR description.
+
+```bash
+// example: name a function
+```",conventions,approved,,T-04-bash
+S-0061,How do I parse a date in Python?,"In Python, parse ISO 8601 strings into timezone-aware values and store them in UTC.",coding,approved,,
+S-0062,What is our Python convention to parse a date?,Our Python convention: parse ISO 8601 strings into timezone-aware values and store them in UTC. Link the decision record in the PR description.,coding,approved,,
+S-0063,How do I parse a date in TypeScript?,"In TypeScript, parse ISO 8601 strings into timezone-aware values and store them in UTC.
+
+```ts
+// example: parse a date
+```",coding,approved,,
+S-0064,What is our TypeScript convention to parse a date?,Our TypeScript convention: parse ISO 8601 strings into timezone-aware values and store them in UTC. Link the decision record in the PR description.,coding,approved,,
+S-0065,How do I parse a date in Go?,"In Go, parse ISO 8601 strings into timezone-aware values and store them in UTC.",coding,approved,,
+S-0066,What is our Go convention to parse a date?,"Our Go convention: parse ISO 8601 strings into timezone-aware values and store them in UTC. Link the decision record in the PR description.
+
+```go
+// example: parse a date
+```",coding,approved,,
+S-0067,How do I parse a date in Rust?,"In Rust, parse ISO 8601 strings into timezone-aware values and store them in UTC.",coding,approved,,
+S-0068,What is our Rust convention to parse a date?,Our Rust convention: parse ISO 8601 strings into timezone-aware values and store them in UTC. Link the decision record in the PR description.,coding,approved,,
+S-0069,How do I parse a date in SQL?,"In SQL, parse ISO 8601 strings into timezone-aware values and store them in UTC.
+
+```sql
+// example: parse a date
+```",coding,approved,,
+S-0070,What is our SQL convention to parse a date?,Our SQL convention: parse ISO 8601 strings into timezone-aware values and store them in UTC. Link the decision record in the PR description.,coding,approved,,
+S-0071,How do I parse a date in Bash?,"In Bash, parse ISO 8601 strings into timezone-aware values and store them in UTC.",coding,approved,,
+S-0072,What is our Bash convention to parse a date?,"Our Bash convention: parse ISO 8601 strings into timezone-aware values and store them in UTC. Link the decision record in the PR description.
+
+```bash
+// example: parse a date
+```",coding,approved,,
+S-0073,How do I validate user input in Python?,"In Python, validate at the boundary with an explicit schema and return field-level errors.",coding,pending,G-06,
+S-0074,What is our Python convention to validate user input?,Our Python convention: validate at the boundary with an explicit schema and return field-level errors. Link the decision record in the PR description.,coding,approved,G-06,
+S-0075,How do I validate user input in TypeScript?,"In TypeScript, validate at the boundary with an explicit schema and return field-level errors.
+
+```ts
+// example: validate user input
+```",coding,approved,G-06,
+S-0076,What is our TypeScript convention to validate user input?,Our TypeScript convention: validate at the boundary with an explicit schema and return field-level errors. Link the decision record in the PR description.,coding,rejected,G-06,
+S-0077,How do I validate user input in Go?,"In Go, validate at the boundary with an explicit schema and return field-level errors.",coding,approved,G-06,
+S-0078,What is our Go convention to validate user input?,"Our Go convention: validate at the boundary with an explicit schema and return field-level errors. Link the decision record in the PR description.
+
+```go
+// example: validate user input
+```",coding,approved,G-06,
+S-0079,How do I validate user input in Rust?,"In Rust, validate at the boundary with an explicit schema and return field-level errors.",coding,approved,G-06,
+S-0080,What is our Rust convention to validate user input?,Our Rust convention: validate at the boundary with an explicit schema and return field-level errors. Link the decision record in the PR description.,coding,approved,G-06,
+S-0081,How do I validate user input in SQL?,"In SQL, validate at the boundary with an explicit schema and return field-level errors.
+
+```sql
+// example: validate user input
+```",coding,approved,G-06,
+S-0082,What is our SQL convention to validate user input?,Our SQL convention: validate at the boundary with an explicit schema and return field-level errors. Link the decision record in the PR description.,coding,approved,G-06,
+S-0083,How do I validate user input in Bash?,"In Bash, validate at the boundary with an explicit schema and return field-level errors.",coding,approved,G-06,
+S-0084,What is our Bash convention to validate user input?,"Our Bash convention: validate at the boundary with an explicit schema and return field-level errors. Link the decision record in the PR description.
+
+```bash
+// example: validate user input
+```",coding,approved,G-06,
+S-0085,How do I structure a module in Python?,"In Python, keep public functions first, private helpers below, and one responsibility per module.",conventions,approved,,T-07-python
+S-0086,What is our Python convention to structure a module?,"Our Python convention: keep public functions first, private helpers below, and one responsibility per module. Link the decision record in the PR description.",conventions,approved,,T-07-python
+S-0087,How do I structure a module in TypeScript?,"In TypeScript, keep public functions first, private helpers below, and one responsibility per module.
+
+```ts
+// example: structure a module
+```",conventions,approved,,T-07-ts
+S-0088,What is our TypeScript convention to structure a module?,"Our TypeScript convention: keep public functions first, private helpers below, and one responsibility per module. Link the decision record in the PR description.",conventions,approved,,T-07-ts
+S-0089,How do I structure a module in Go?,"In Go, keep public functions first, private helpers below, and one responsibility per module.",conventions,approved,,T-07-go
+S-0090,What is our Go convention to structure a module?,"Our Go convention: keep public functions first, private helpers below, and one responsibility per module. Link the decision record in the PR description.
+
+```go
+// example: structure a module
+```",conventions,pending,,T-07-go
+S-0091,How do I structure a module in Rust?,"In Rust, keep public functions first, private helpers below, and one responsibility per module.",conventions,approved,,T-07-rust
+S-0092,What is our Rust convention to structure a module?,"Our Rust convention: keep public functions first, private helpers below, and one responsibility per module. Link the decision record in the PR description.",conventions,approved,,T-07-rust
+S-0093,How do I structure a module in SQL?,"In SQL, keep public functions first, private helpers below, and one responsibility per module.
+
+```sql
+// example: structure a module
+```",conventions,approved,,T-07-sql
+S-0094,What is our SQL convention to structure a module?,"Our SQL convention: keep public functions first, private helpers below, and one responsibility per module. Link the decision record in the PR description.",conventions,approved,,T-07-sql
+S-0095,How do I structure a module in Bash?,"In Bash, keep public functions first, private helpers below, and one responsibility per module.",conventions,approved,,T-07-bash
+S-0096,What is our Bash convention to structure a module?,"Our Bash convention: keep public functions first, private helpers below, and one responsibility per module. Link the decision record in the PR description.
+
+```bash
+// example: structure a module
+```",conventions,approved,,T-07-bash
+S-0097,How do I paginate results in Python?,"In Python, use cursor-based pagination with a stable sort key and a maximum page size.",coding,approved,,
+S-0098,What is our Python convention to paginate results?,Our Python convention: use cursor-based pagination with a stable sort key and a maximum page size. Link the decision record in the PR description.,coding,approved,,
+S-0099,How do I paginate results in TypeScript?,"In TypeScript, use cursor-based pagination with a stable sort key and a maximum page size.
+
+```ts
+// example: paginate results
+```",coding,rejected,,
+S-0100,What is our TypeScript convention to paginate results?,Our TypeScript convention: use cursor-based pagination with a stable sort key and a maximum page size. Link the decision record in the PR description.,coding,approved,,
+S-0101,How do I paginate results in Go?,"In Go, use cursor-based pagination with a stable sort key and a maximum page size.",coding,approved,,
+S-0102,What is our Go convention to paginate results?,"Our Go convention: use cursor-based pagination with a stable sort key and a maximum page size. Link the decision record in the PR description.
+
+```go
+// example: paginate results
+```",coding,approved,,
+S-0103,How do I paginate results in Rust?,"In Rust, use cursor-based pagination with a stable sort key and a maximum page size.",coding,approved,,
+S-0104,What is our Rust convention to paginate results?,Our Rust convention: use cursor-based pagination with a stable sort key and a maximum page size. Link the decision record in the PR description.,coding,approved,,
+S-0105,How do I paginate results in SQL?,"In SQL, use cursor-based pagination with a stable sort key and a maximum page size.
+
+```sql
+// example: paginate results
+```",coding,approved,,
+S-0106,What is our SQL convention to paginate results?,Our SQL convention: use cursor-based pagination with a stable sort key and a maximum page size. Link the decision record in the PR description.,coding,approved,,
+S-0107,How do I paginate results in Bash?,"In Bash, use cursor-based pagination with a stable sort key and a maximum page size.",coding,pending,,
+S-0108,What is our Bash convention to paginate results?,"Our Bash convention: use cursor-based pagination with a stable sort key and a maximum page size. Link the decision record in the PR description.
+
+```bash
+// example: paginate results
+```",coding,approved,,
+S-0109,How do I store a secret in Python?,"In Python, read it from the environment or the secret manager at runtime, never from the repository.",operations,approved,G-09,
+S-0110,What is our Python convention to store a secret?,"Our Python convention: read it from the environment or the secret manager at runtime, never from the repository. Link the decision record in the PR description.",operations,approved,G-09,
+S-0111,How do I store a secret in TypeScript?,"In TypeScript, read it from the environment or the secret manager at runtime, never from the repository.
+
+```ts
+// example: store a secret
+```",operations,approved,G-09,
+S-0112,What is our TypeScript convention to store a secret?,"Our TypeScript convention: read it from the environment or the secret manager at runtime, never from the repository. Link the decision record in the PR description.",operations,approved,G-09,
+S-0113,How do I store a secret in Go?,"In Go, read it from the environment or the secret manager at runtime, never from the repository.",operations,approved,G-09,
+S-0114,What is our Go convention to store a secret?,"Our Go convention: read it from the environment or the secret manager at runtime, never from the repository. Link the decision record in the PR description.
+
+```go
+// example: store a secret
+```",operations,approved,G-09,
+S-0115,How do I store a secret in Rust?,"In Rust, read it from the environment or the secret manager at runtime, never from the repository.",operations,approved,G-09,
+S-0116,What is our Rust convention to store a secret?,"Our Rust convention: read it from the environment or the secret manager at runtime, never from the repository. Link the decision record in the PR description.",operations,approved,G-09,
+S-0117,How do I store a secret in SQL?,"In SQL, read it from the environment or the secret manager at runtime, never from the repository.
+
+```sql
+// example: store a secret
+```",operations,approved,G-09,
+S-0118,What is our SQL convention to store a secret?,"Our SQL convention: read it from the environment or the secret manager at runtime, never from the repository. Link the decision record in the PR description.",operations,approved,G-09,
+S-0119,How do I store a secret in Bash?,"In Bash, read it from the environment or the secret manager at runtime, never from the repository.",operations,approved,G-09,
+S-0120,What is our Bash convention to store a secret?,"Our Bash convention: read it from the environment or the secret manager at runtime, never from the repository. Link the decision record in the PR description.
+
+```bash
+// example: store a secret
+```",operations,approved,G-09,
+S-0121,How do I review a pull request in Python?,"In Python, check behaviour and tests first, then naming, then style, and leave actionable comments.",conventions,approved,,T-10-python
+S-0122,What is our Python convention to review a pull request?,"Our Python convention: check behaviour and tests first, then naming, then style, and leave actionable comments. Link the decision record in the PR description.",conventions,rejected,,T-10-python
+S-0123,How do I review a pull request in TypeScript?,"In TypeScript, check behaviour and tests first, then naming, then style, and leave actionable comments.
+
+```ts
+// example: review a pull request
+```",conventions,approved,,T-10-ts
+S-0124,What is our TypeScript convention to review a pull request?,"Our TypeScript convention: check behaviour and tests first, then naming, then style, and leave actionable comments. Link the decision record in the PR description.",conventions,pending,,T-10-ts
+S-0125,How do I review a pull request in Go?,"In Go, check behaviour and tests first, then naming, then style, and leave actionable comments.",conventions,approved,,T-10-go
+S-0126,What is our Go convention to review a pull request?,"Our Go convention: check behaviour and tests first, then naming, then style, and leave actionable comments. Link the decision record in the PR description.
+
+```go
+// example: review a pull request
+```",conventions,approved,,T-10-go
+S-0127,How do I review a pull request in Rust?,"In Rust, check behaviour and tests first, then naming, then style, and leave actionable comments.",conventions,approved,,T-10-rust
+S-0128,What is our Rust convention to review a pull request?,"Our Rust convention: check behaviour and tests first, then naming, then style, and leave actionable comments. Link the decision record in the PR description.",conventions,approved,,T-10-rust
+S-0129,How do I review a pull request in SQL?,"In SQL, check behaviour and tests first, then naming, then style, and leave actionable comments.
+
+```sql
+// example: review a pull request
+```",conventions,approved,,T-10-sql
+S-0130,What is our SQL convention to review a pull request?,"Our SQL convention: check behaviour and tests first, then naming, then style, and leave actionable comments. Link the decision record in the PR description.",conventions,approved,,T-10-sql
+S-0131,How do I review a pull request in Bash?,"In Bash, check behaviour and tests first, then naming, then style, and leave actionable comments.",conventions,approved,,T-10-bash
+S-0132,What is our Bash convention to review a pull request?,"Our Bash convention: check behaviour and tests first, then naming, then style, and leave actionable comments. Link the decision record in the PR description.
+
+```bash
+// example: review a pull request
+```",conventions,approved,,T-10-bash
+S-0133,How do I deprecate an API in Python?,"In Python, mark it deprecated, log a warning naming the replacement, and remove it after two releases.",operations,approved,,
+S-0134,What is our Python convention to deprecate an API?,"Our Python convention: mark it deprecated, log a warning naming the replacement, and remove it after two releases. Link the decision record in the PR description.",operations,approved,,
+S-0135,How do I deprecate an API in TypeScript?,"In TypeScript, mark it deprecated, log a warning naming the replacement, and remove it after two releases.
+
+```ts
+// example: deprecate an API
+```",operations,approved,,
+S-0136,What is our TypeScript convention to deprecate an API?,"Our TypeScript convention: mark it deprecated, log a warning naming the replacement, and remove it after two releases. Link the decision record in the PR description.",operations,approved,,
+S-0137,How do I deprecate an API in Go?,"In Go, mark it deprecated, log a warning naming the replacement, and remove it after two releases.",operations,approved,,
+S-0138,What is our Go convention to deprecate an API?,"Our Go convention: mark it deprecated, log a warning naming the replacement, and remove it after two releases. Link the decision record in the PR description.
+
+```go
+// example: deprecate an API
+```",operations,approved,,
+S-0139,How do I deprecate an API in Rust?,"In Rust, mark it deprecated, log a warning naming the replacement, and remove it after two releases.",operations,approved,,
+S-0140,What is our Rust convention to deprecate an API?,"Our Rust convention: mark it deprecated, log a warning naming the replacement, and remove it after two releases. Link the decision record in the PR description.",operations,approved,,
+S-0141,How do I deprecate an API in SQL?,"In SQL, mark it deprecated, log a warning naming the replacement, and remove it after two releases.
+
+```sql
+// example: deprecate an API
+```",operations,pending,,
+S-0142,What is our SQL convention to deprecate an API?,"Our SQL convention: mark it deprecated, log a warning naming the replacement, and remove it after two releases. Link the decision record in the PR description.",operations,approved,,
+S-0143,How do I deprecate an API in Bash?,"In Bash, mark it deprecated, log a warning naming the replacement, and remove it after two releases.",operations,approved,,
+S-0144,What is our Bash convention to deprecate an API?,"Our Bash convention: mark it deprecated, log a warning naming the replacement, and remove it after two releases. Link the decision record in the PR description.
+
+```bash
+// example: deprecate an API
+```",operations,approved,,
+S-9001,How do I  read a config file in Python?,"In Python, load it once at startup, validate every field and fail fast with a clear message.",coding,approved,,
+S-9002,How do I read a config file in TypeScript?,Ask in the team channel first; the convention changed last year.,conventions,approved,,
+S-9003,Can you describe the full release checklist?,"Step 1: check the input, log the outcome and move on. Step 2: check the input, log the outcome and move on. Step 3: check the input, log the outcome and move on. Step 4: check the input, log the outcome and move on. Step 5: check the input, log the outcome and move on. Step 6: check the input, log the outcome and move on. Step 7: check the input, log the outcome and move on. Step 8: check the input, log the outcome and move on. Step 9: check the input, log the outcome and move on. Step 10: check the input, log the outcome and move on. Step 11: check the input, log the outcome and move on. Step 12: check the input, log the outcome and move on. Step 13: check the input, log the outcome and move on. Step 14: check the input, log the outcome and move on. Step 15: check the input, log the outcome and move on. Step 16: check the input, log the outcome and move on. Step 17: check the input, log the outcome and move on. Step 18: check the input, log the outcome and move on. Step 19: check the input, log the outcome and move on. Step 20: check the input, log the outcome and move on. Step 21: check the input, log the outcome and move on. Step 22: check the input, log the outcome and move on. Step 23: check the input, log the outcome and move on. Step 24: check the input, log the outcome and move on. Step 25: check the input, log the outcome and move on. Step 26: check the input, log the outcome and move on. Step 27: check the input, log the outcome and move on. Step 28: check the input, log the outcome and move on. Step 29: check the input, log the outcome and move on. Step 30: check the input, log the outcome and move on. Step 31: check the input, log the outcome and move on. Step 32: check the input, log the outcome and move on. Step 33: check the input, log the outcome and move on. Step 34: check the input, log the outcome and move on. Step 35: check the input, log the outcome and move on. Step 36: check the input, log the outcome and move on. Step 37: check the input, log the outcome and move on. Step 38: check the input, log the outcome and move on. Step 39: check the input, log the outcome and move on. Step 40: check the input, log the outcome and move on. Step 41: check the input, log the outcome and move on. Step 42: check the input, log the outcome and move on. Step 43: check the input, log the outcome and move on. Step 44: check the input, log the outcome and move on. Step 45: check the input, log the outcome and move on. Step 46: check the input, log the outcome and move on. Step 47: check the input, log the outcome and move on. Step 48: check the input, log the outcome and move on. Step 49: check the input, log the outcome and move on. Step 50: check the input, log the outcome and move on. Step 51: check the input, log the outcome and move on. Step 52: check the input, log the outcome and move on. Step 53: check the input, log the outcome and move on. Step 54: check the input, log the outcome and move on. Step 55: check the input, log the outcome and move on. Step 56: check the input, log the outcome and move on. Step 57: check the input, log the outcome and move on. Step 58: check the input, log the outcome and move on. Step 59: check the input, log the outcome and move on. Step 60: check the input, log the outcome and move on. Step 61: check the input, log the outcome and move on. Step 62: check the input, log the outcome and move on. Step 63: check the input, log the outcome and move on. Step 64: check the input, log the outcome and move on. Step 65: check the input, log the outcome and move on. Step 66: check the input, log the outcome and move on. Step 67: check the input, log the outcome and move on. Step 68: check the input, log the outcome and move on. Step 69: check the input, log the outcome and move on. Step 70: check the input, log the outcome and move on. Step 71: check the input, log the outcome and move on. Step 72: check the input, log the outcome and move on. Step 73: check the input, log the outcome and move on. Step 74: check the input, log the outcome and move on. Step 75: check the input, log the outcome and move on. Step 76: check the input, log the outcome and move on. Step 77: check the input, log the outcome and move on. Step 78: check the input, log the outcome and move on. Step 79: check the input, log the outcome and move on. Step 80: check the input, log the outcome and move on. Step 81: check the input, log the outcome and move on. Step 82: check the input, log the outcome and move on. Step 83: check the input, log the outcome and move on. Step 84: check the input, log the outcome and move on. Step 85: check the input, log the outcome and move on. Step 86: check the input, log the outcome and move on. Step 87: check the input, log the outcome and move on. Step 88: check the input, log the outcome and move on. Step 89: check the input, log the outcome and move on. Step 90: check the input, log the outcome and move on. Step 91: check the input, log the outcome and move on. Step 92: check the input, log the outcome and move on. Step 93: check the input, log the outcome and move on. Step 94: check the input, log the outcome and move on. Step 95: check the input, log the outcome and move on. Step 96: check the input, log the outcome and move on. Step 97: check the input, log the outcome and move on. Step 98: check the input, log the outcome and move on. Step 99: check the input, log the outcome and move on. Step 100: check the input, log the outcome and move on. Step 101: check the input, log the outcome and move on. Step 102: check the input, log the outcome and move on. Step 103: check the input, log the outcome and move on. Step 104: check the input, log the outcome and move on. Step 105: check the input, log the outcome and move on. Step 106: check the input, log the outcome and move on. Step 107: check the input, log the outcome and move on. Step 108: check the input, log the outcome and move on. Step 109: check the input, log the outcome and move on. Step 110: check the input, log the outcome and move on. Step 111: check the input, log the outcome and move on. Step 112: check the input, log the outcome and move on. Step 113: check the input, log the outcome and move on. Step 114: check the input, log the outcome and move on. Step 115: check the input, log the outcome and move on. Step 116: check the input, log the outcome and move on. Step 117: check the input, log the outcome and move on. Step 118: check the input, log the outcome and move on. Step 119: check the input, log the outcome and move on. Step 120: check the input, log the outcome and move on. Step 121: check the input, log the outcome and move on. Step 122: check the input, log the outcome and move on. Step 123: check the input, log the outcome and move on. Step 124: check the input, log the outcome and move on. Step 125: check the input, log the outcome and move on. Step 126: check the input, log the outcome and move on. Step 127: check the input, log the outcome and move on. Step 128: check the input, log the outcome and move on. Step 129: check the input, log the outcome and move on. Step 130: check the input, log the outcome and move on. Step 131: check the input, log the outcome and move on. Step 132: check the input, log the outcome and move on. Step 133: check the input, log the outcome and move on. Step 134: check the input, log the outcome and move on. Step 135: check the input, log the outcome and move on. Step 136: check the input, log the outcome and move on. Step 137: check the input, log the outcome and move on. Step 138: check the input, log the outcome and move on. Step 139: check the input, log the outcome and move on. Step 140: check the input, log the outcome and move on. Step 141: check the input, log the outcome and move on. Step 142: check the input, log the outcome and move on. Step 143: check the input, log the outcome and move on. Step 144: check the input, log the outcome and move on. Step 145: check the input, log the outcome and move on. Step 146: check the input, log the outcome and move on. Step 147: check the input, log the outcome and move on. Step 148: check the input, log the outcome and move on. Step 149: check the input, log the outcome and move on. Step 150: check the input, log the outcome and move on. Step 151: check the input, log the outcome and move on. Step 152: check the input, log the outcome and move on. Step 153: check the input, log the outcome and move on. Step 154: check the input, log the outcome and move on. Step 155: check the input, log the outcome and move on. Step 156: check the input, log the outcome and move on. Step 157: check the input, log the outcome and move on. Step 158: check the input, log the outcome and move on. Step 159: check the input, log the outcome and move on. Step 160: check the input, log the outcome and move on. Step 161: check the input, log the outcome and move on. Step 162: check the input, log the outcome and move on. Step 163: check the input, log the outcome and move on. Step 164: check the input, log the outcome and move on. Step 165: check the input, log the outcome and move on. Step 166: check the input, log the outcome and move on. Step 167: check the input, log the outcome and move on. Step 168: check the input, log the outcome and move on. Step 169: check the input, log the outcome and move on. Step 170: check the input, log the outcome and move on. Step 171: check the input, log the outcome and move on. Step 172: check the input, log the outcome and move on. Step 173: check the input, log the outcome and move on. Step 174: check the input, log the outcome and move on. Step 175: check the input, log the outcome and move on. Step 176: check the input, log the outcome and move on. Step 177: check the input, log the outcome and move on. Step 178: check the input, log the outcome and move on. Step 179: check the input, log the outcome and move on. Step 180: check the input, log the outcome and move on. Step 181: check the input, log the outcome and move on. Step 182: check the input, log the outcome and move on. Step 183: check the input, log the outcome and move on. Step 184: check the input, log the outcome and move on. Step 185: check the input, log the outcome and move on. Step 186: check the input, log the outcome and move on. Step 187: check the input, log the outcome and move on. Step 188: check the input, log the outcome and move on. Step 189: check the input, log the outcome and move on. Step 190: check the input, log the outcome and move on. Step 191: check the input, log the outcome and move on. Step 192: check the input, log the outcome and move on. Step 193: check the input, log the outcome and move on. Step 194: check the input, log the outcome and move on. Step 195: check the input, log the outcome and move on. Step 196: check the input, log the outcome and move on. Step 197: check the input, log the outcome and move on. Step 198: check the input, log the outcome and move on. Step 199: check the input, log the outcome and move on. Step 200: check the input, log the outcome and move on. Step 201: check the input, log the outcome and move on. Step 202: check the input, log the outcome and move on. Step 203: check the input, log the outcome and move on. Step 204: check the input, log the outcome and move on. Step 205: check the input, log the outcome and move on. Step 206: check the input, log the outcome and move on. Step 207: check the input, log the outcome and move on. Step 208: check the input, log the outcome and move on. Step 209: check the input, log the outcome and move on. Step 210: check the input, log the outcome and move on. Step 211: check the input, log the outcome and move on. Step 212: check the input, log the outcome and move on. Step 213: check the input, log the outcome and move on. Step 214: check the input, log the outcome and move on. Step 215: check the input, log the outcome and move on. Step 216: check the input, log the outcome and move on. Step 217: check the input, log the outcome and move on. Step 218: check the input, log the outcome and move on. Step 219: check the input, log the outcome and move on. Step 220: check the input, log the outcome and move on. Step 221: check the input, log the outcome and move on. Step 222: check the input, log the outcome and move on. Step 223: check the input, log the outcome and move on. Step 224: check the input, log the outcome and move on. Step 225: check the input, log the outcome and move on. Step 226: check the input, log the outcome and move on. Step 227: check the input, log the outcome and move on. Step 228: check the input, log the outcome and move on. Step 229: check the input, log the outcome and move on. Step 230: check the input, log the outcome and move on. Step 231: check the input, log the outcome and move on. Step 232: check the input, log the outcome and move on. Step 233: check the input, log the outcome and move on. Step 234: check the input, log the outcome and move on. Step 235: check the input, log the outcome and move on. Step 236: check the input, log the outcome and move on. Step 237: check the input, log the outcome and move on. Step 238: check the input, log the outcome and move on. Step 239: check the input, log the outcome and move on. Step 240: check the input, log the outcome and move on. Step 241: check the input, log the outcome and move on. Step 242: check the input, log the outcome and move on. Step 243: check the input, log the outcome and move on. Step 244: check the input, log the outcome and move on. Step 245: check the input, log the outcome and move on. Step 246: check the input, log the outcome and move on. Step 247: check the input, log the outcome and move on. Step 248: check the input, log the outcome and move on. Step 249: check the input, log the outcome and move on. Step 250: check the input, log the outcome and move on. Step 251: check the input, log the outcome and move on. Step 252: check the input, log the outcome and move on. Step 253: check the input, log the outcome and move on. Step 254: check the input, log the outcome and move on. Step 255: check the input, log the outcome and move on. Step 256: check the input, log the outcome and move on. Step 257: check the input, log the outcome and move on. Step 258: check the input, log the outcome and move on. Step 259: check the input, log the outcome and move on. Step 260: check the input, log the outcome and move on. Step 261: check the input, log the outcome and move on. Step 262: check the input, log the outcome and move on. Step 263: check the input, log the outcome and move on. Step 264: check the input, log the outcome and move on. Step 265: check the input, log the outcome and move on. Step 266: check the input, log the outcome and move on. Step 267: check the input, log the outcome and move on. Step 268: check the input, log the outcome and move on. Step 269: check the input, log the outcome and move on. Step 270: check the input, log the outcome and move on. Step 271: check the input, log the outcome and move on. Step 272: check the input, log the outcome and move on. Step 273: check the input, log the outcome and move on. Step 274: check the input, log the outcome and move on. Step 275: check the input, log the outcome and move on. Step 276: check the input, log the outcome and move on. Step 277: check the input, log the outcome and move on. Step 278: check the input, log the outcome and move on. Step 279: check the input, log the outcome and move on. Step 280: check the input, log the outcome and move on. Step 281: check the input, log the outcome and move on. Step 282: check the input, log the outcome and move on. Step 283: check the input, log the outcome and move on. Step 284: check the input, log the outcome and move on. Step 285: check the input, log the outcome and move on. Step 286: check the input, log the outcome and move on. Step 287: check the input, log the outcome and move on. Step 288: check the input, log the outcome and move on. Step 289: check the input, log the outcome and move on. Step 290: check the input, log the outcome and move on. Step 291: check the input, log the outcome and move on. Step 292: check the input, log the outcome and move on. Step 293: check the input, log the outcome and move on. Step 294: check the input, log the outcome and move on. Step 295: check the input, log the outcome and move on. Step 296: check the input, log the outcome and move on. Step 297: check the input, log the outcome and move on. Step 298: check the input, log the outcome and move on. Step 299: check the input, log the outcome and move on. Step 300: check the input, log the outcome and move on.",operations,approved,,

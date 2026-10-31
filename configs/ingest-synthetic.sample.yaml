@@ -1,0 +1,16 @@
+# Sample ingest config: a synthetic dataset large enough to split (tests/fixtures/qa_synthetic.csv).
+kind: ingest
+name: synthetic
+sources:
+  - path: ../tests/fixtures/qa_synthetic.csv
+    format: csv
+    columns:
+      question: question
+      answer: answer
+      id: id
+      category: category
+      status: status
+      group: group
+      thread: thread
+privacy:
+  policy: exclude

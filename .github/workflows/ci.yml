@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    env:
+      PYTHONUTF8: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      HF_HUB_OFFLINE: "1"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.7.13" # same uv that wrote uv.lock
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install (CPU, web, dev)
+        run: uv sync --locked --extra cpu --extra web --extra dev
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      # The generated TypeScript client must match the API (also checked by the API tests).
+      - name: Web install and API client up to date
+        run: |
+          npm --prefix web ci
+          npm --prefix web run check:api
+
+      - name: Web lint, unit tests and build
+        run: |
+          npm --prefix web run lint
+          npm --prefix web run test
+          npm --prefix web run build
+
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Tests (default markers)
+        run: uv run pytest
+
+      # Downloads the tiny test model's tokenizer (a few MB) through FlipTuned's own
+      # --allow-download path, which turns offline mode off only for that call.
+      - name: Tests (tiny)
+        run: uv run pytest -m tiny
+
+      - name: Doctor smoke check
+        run: uv run fliptuned doctor --home ./.dev-home

@@ -1,0 +1,28 @@
+# Sample training config (tiny test model on CPU). Values mirror SPEC §11.5 with decisions.md C3/C6.
+kind: train
+name: fixtures-tiny
+model:
+  catalog_id: tiny-qwen2
+backend: auto
+device: auto
+precision: auto
+preset: standard
+training:
+  max_epochs: 3
+  patience: 3
+  batch_size: 1
+  grad_accumulation_steps: 4
+  learning_rate: 1.0e-4
+  max_seq_length: 1024
+  eval_every_steps: 50
+  gradient_checkpointing: true
+  seed: 42
+  mlx:
+    num_layers: 8
+  hf_peft:
+    target_modules: auto
+    cpu_max_params_b: 1.0
+lora:
+  rank: 8
+  alpha: 16
+  dropout: 0.05

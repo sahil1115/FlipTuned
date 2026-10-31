@@ -1,0 +1,281 @@
+{
+  "$defs": {
+    "Backend": {
+      "enum": [
+        "auto",
+        "mlx",
+        "hf_peft"
+      ],
+      "title": "Backend",
+      "type": "string"
+    },
+    "Device": {
+      "enum": [
+        "auto",
+        "cuda",
+        "cpu"
+      ],
+      "title": "Device",
+      "type": "string"
+    },
+    "HfPeftTrainingOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "target_modules": {
+          "anyOf": [
+            {
+              "const": "auto",
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "auto",
+          "description": "Which layers get LoRA adapters (NVIDIA/CPU). 'auto' picks them for the model architecture.",
+          "title": "Target Modules"
+        },
+        "cpu_max_params_b": {
+          "default": 1.0,
+          "description": "Largest model, in billions of parameters, allowed to train on CPU. CPU training is very slow.",
+          "exclusiveMinimum": 0,
+          "title": "Cpu Max Params B",
+          "type": "number"
+        }
+      },
+      "title": "HfPeftTrainingOptions",
+      "type": "object"
+    },
+    "LoraOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "rank": {
+          "default": 8,
+          "description": "Size of the adapter. Bigger can learn more but uses more memory.",
+          "maximum": 256,
+          "minimum": 1,
+          "title": "Rank",
+          "type": "integer"
+        },
+        "alpha": {
+          "default": 16,
+          "description": "Strength of the adapter. The effective scale is alpha / rank on every backend (MLX receives scale = alpha / rank).",
+          "exclusiveMinimum": 0,
+          "title": "Alpha",
+          "type": "number"
+        },
+        "dropout": {
+          "default": 0.05,
+          "description": "Randomly ignores part of the adapter while training to reduce overfitting.",
+          "exclusiveMaximum": 1,
+          "minimum": 0,
+          "title": "Dropout",
+          "type": "number"
+        }
+      },
+      "title": "LoraOptions",
+      "type": "object"
+    },
+    "MlxTrainingOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "num_layers": {
+          "default": 8,
+          "description": "How many of the model's last layers get LoRA adapters (Apple Silicon). -1 means all.",
+          "minimum": -1,
+          "title": "Num Layers",
+          "type": "integer"
+        }
+      },
+      "title": "MlxTrainingOptions",
+      "type": "object"
+    },
+    "ModelRef": {
+      "additionalProperties": false,
+      "properties": {
+        "catalog_id": {
+          "description": "Which model from the catalog to fine-tune.",
+          "title": "Catalog Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "catalog_id"
+      ],
+      "title": "ModelRef",
+      "type": "object"
+    },
+    "Precision": {
+      "enum": [
+        "auto",
+        "qlora_4bit",
+        "bf16",
+        "fp16",
+        "fp32"
+      ],
+      "title": "Precision",
+      "type": "string"
+    },
+    "TrainingOptions": {
+      "additionalProperties": false,
+      "properties": {
+        "max_epochs": {
+          "default": 3,
+          "description": "Most passes over the training data. Training may stop earlier if validation stops improving.",
+          "exclusiveMinimum": 0,
+          "maximum": 100,
+          "title": "Max Epochs",
+          "type": "number"
+        },
+        "patience": {
+          "default": 3,
+          "description": "Stop after this many validation checks in a row without improvement.",
+          "minimum": 1,
+          "title": "Patience",
+          "type": "integer"
+        },
+        "batch_size": {
+          "default": 1,
+          "description": "Examples processed together. Higher uses more memory.",
+          "minimum": 1,
+          "title": "Batch Size",
+          "type": "integer"
+        },
+        "grad_accumulation_steps": {
+          "default": 4,
+          "description": "Batches combined before each update. Raises the effective batch size without extra memory.",
+          "minimum": 1,
+          "title": "Grad Accumulation Steps",
+          "type": "integer"
+        },
+        "learning_rate": {
+          "default": 0.0001,
+          "description": "How big each update step is. Too high can make training unstable.",
+          "exclusiveMaximum": 1,
+          "exclusiveMinimum": 0,
+          "title": "Learning Rate",
+          "type": "number"
+        },
+        "max_seq_length": {
+          "default": 1024,
+          "description": "Longest example in tokens. Must match the dataset build.",
+          "maximum": 32768,
+          "minimum": 64,
+          "title": "Max Seq Length",
+          "type": "integer"
+        },
+        "eval_every_steps": {
+          "default": 50,
+          "description": "Check validation loss (and save a checkpoint) every this many weight updates.",
+          "minimum": 1,
+          "title": "Eval Every Steps",
+          "type": "integer"
+        },
+        "gradient_checkpointing": {
+          "default": true,
+          "description": "Save memory at the cost of roughly 20% slower training.",
+          "title": "Gradient Checkpointing",
+          "type": "boolean"
+        },
+        "seed": {
+          "default": 42,
+          "description": "Random seed for reproducible training.",
+          "title": "Seed",
+          "type": "integer"
+        },
+        "mlx": {
+          "$ref": "#/$defs/MlxTrainingOptions",
+          "description": "Settings used only on Apple Silicon (MLX)."
+        },
+        "hf_peft": {
+          "$ref": "#/$defs/HfPeftTrainingOptions",
+          "description": "Settings used only on NVIDIA GPUs and CPU (Transformers + PEFT)."
+        }
+      },
+      "title": "TrainingOptions",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "train",
+      "default": "train",
+      "description": "Config type. Must be 'train' for this file.",
+      "title": "Kind",
+      "type": "string"
+    },
+    "name": {
+      "description": "A short name for this training configuration.",
+      "title": "Name",
+      "type": "string"
+    },
+    "dataset_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Dataset build to train on. Empty means the most recent one.",
+      "title": "Dataset Id"
+    },
+    "model": {
+      "$ref": "#/$defs/ModelRef",
+      "description": "The base model."
+    },
+    "backend": {
+      "$ref": "#/$defs/Backend",
+      "default": "auto",
+      "description": "Training engine. 'auto' picks MLX on Apple Silicon, otherwise Transformers + PEFT."
+    },
+    "device": {
+      "$ref": "#/$defs/Device",
+      "default": "auto",
+      "description": "Hardware for Transformers + PEFT. 'auto' uses an NVIDIA GPU if present, else the CPU."
+    },
+    "precision": {
+      "$ref": "#/$defs/Precision",
+      "default": "auto",
+      "description": "Number format. 'auto' picks 4-bit QLoRA or bf16/fp16 on NVIDIA, fp32 on CPU."
+    },
+    "preset": {
+      "default": "standard",
+      "description": "Starting point for the training settings. 'quick' checks that everything works, 'standard' is a sensible default, 'thorough' trains longer and more carefully. Settings you write under 'training' override the preset.",
+      "enum": [
+        "quick",
+        "standard",
+        "thorough"
+      ],
+      "title": "Preset",
+      "type": "string"
+    },
+    "training": {
+      "$ref": "#/$defs/TrainingOptions",
+      "description": "Training loop."
+    },
+    "lora": {
+      "$ref": "#/$defs/LoraOptions",
+      "description": "LoRA adapter shape."
+    },
+    "system_prompt": {
+      "default": "You are a careful technical assistant. Follow the team's answer conventions, do not invent organization-specific facts, and state uncertainty when you are not sure.",
+      "description": "Must be identical to the dataset's system prompt; chat uses it too.",
+      "minLength": 1,
+      "title": "System Prompt",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "model"
+  ],
+  "title": "TrainConfig",
+  "type": "object"
+}
