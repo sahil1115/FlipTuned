@@ -30,6 +30,9 @@ makes a new token, carried in the link it prints (`…/#token=…`). A bookmark,
 from before a restart has the old token. Open the link the command printed most recently. The
 token lives only in that browser tab, so a new tab needs the link too.
 
+**"The web app needs the 'web' extra".** `fliptuned serve` was started without the web
+packages. Run `uv run fliptuned doctor --suggest-install` and use the command it prints.
+
 **A placeholder page instead of the app.** The UI hasn't been built. Build it once (Node 22):
 
 ```text
@@ -63,10 +66,17 @@ releases the model by itself after the idle timeout).
 **"… is not downloaded".** Model commands work offline. Allow the download once: `--allow-download`
 on the command, or the download option in the UI (Models, Dataset, Preflight).
 
+**Review decisions after changing a source file.** Decisions belong to a record's content.
+After `ingest --overwrite`, rows that only moved (because rows were inserted or deleted above
+them) keep their decision; a row whose question or answer changed goes back to review.
+
 ## Out of memory
 
 What it looks like and what to do, per device. Settings are in the training config (Advanced
 settings in the UI); `docs/platforms.md` has the full list of memory tips.
+
+A job that runs out of memory fails with "The job ran out of memory." and a hint; chat shows
+"The model ran out of memory while answering." and keeps the session open.
 
 | Device | What you see | What to do |
 |---|---|---|

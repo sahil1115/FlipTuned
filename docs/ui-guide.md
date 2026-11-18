@@ -65,7 +65,8 @@ step of the workflow can be done here without the CLI:
 - **Download the tokenizer:** tick this if the model's tokenizer isn't on this computer yet.
 
 After the build:
-- **Warnings:** for example a small test set, or one group dominating a split.
+- **Warnings:** for example a small test set, one group dominating a split, the same question
+  with different approved answers, or a category with no test examples.
 - **Statistics:** records considered and included, duplicates removed, the largest group, and per
   split the target vs actual share, examples, groups and token-length percentiles.
 - **Exclusions,** with their reasons.
@@ -107,7 +108,8 @@ Tiny test-only models appear only with developer mode on (`dev_mode` in the sett
   downloaded.
 - Every check shows **pass**, **warn** or **fail**, its message and what to do: dataset, system
   prompt, model, backend, memory (estimate), CPU size limit, model files, disk, the chat-template
-  test on real training examples, the update count and the CPU time estimate.
+  test on real training examples, whether every example fits `max_seq_length`, the update count
+  and the CPU time estimate.
 - **Start training** stays disabled while any check fails; the server refuses too. Training runs as
   a background job, and the run monitor opens for it.
 - If another job is using the model (training, evaluation, chat or merge), a notice at the top
@@ -161,7 +163,9 @@ Tiny test-only models appear only with developer mode on (`dev_mode` in the sett
 - A permanent banner: **model weights only — no document retrieval**. Answers come from the model
   alone, and nothing you type is logged or saved.
 - Pick a finished run and the fine-tuned model (base + adapter) or the base model alone, then
-  **Load the model and chat**. Replies stream in; Enter sends, Shift+Enter adds a line.
+  **Load the model and chat**. Replies stream in; Enter sends, Shift+Enter adds a line. **Stop**
+  ends a reply early and keeps what arrived. If a reply fails, your message goes back into the
+  box to send again; if it hit the length limit, the page says it was cut off.
 - The model is released after the idle timeout (Settings) without a message; the page says so, and
   you load it again to continue (the conversation starts over). **Close and release the model**
   frees it at once; closing the tab does too. If another job holds the model, the screen names it,

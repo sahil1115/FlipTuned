@@ -9,8 +9,10 @@ Only these, and only when you ask for them:
 
 - **Package installs** (`uv sync`, `npm --prefix web ci`).
 - **Model and tokenizer downloads** from Hugging Face: with `--allow-download` or a download button
-  in the UI. Everything else runs with `HF_HUB_OFFLINE=1` and fails with a clear message if files are
-  missing.
+  in the UI. Everything else runs offline and fails with a clear message if files are missing: FlipTuned
+  forces `HF_HUB_OFFLINE=1` (also `TRANSFORMERS_OFFLINE` and `HF_DATASETS_OFFLINE`) even if your
+  shell sets them differently. A Hugging Face account token saved on this machine is never
+  attached to downloads (`HF_HUB_DISABLE_IMPLICIT_TOKEN=1`), so gated models can't be fetched.
 
 There is **no telemetry**: `HF_HUB_DISABLE_TELEMETRY=1` is set, Transformers/TRL get
 `report_to="none"`, mlx-lm's `--report-to` is never passed, and there are no hosted trackers, crash
@@ -19,8 +21,9 @@ its Content-Security-Policy blocks anything else.
 
 ## Secrets in your data
 
-During ingest every record is scanned for likely secrets: API keys, tokens, passwords, private keys,
-connection strings, and any extra patterns you add (`privacy.extra_patterns`). The policy
+During ingest every record is scanned for likely secrets: API keys, tokens (including Hugging Face, GitHub, GitLab, Slack and Stripe formats and
+`Bearer` headers), passwords, private keys, connection strings, credentials inside URLs, and
+any extra patterns you add (`privacy.extra_patterns`). The policy
 (`privacy.policy`) decides what happens:
 
 | Policy | Effect |
@@ -41,6 +44,9 @@ the value.
 - Your Q&A *is* stored, by design, in the app home: ingested records, datasets, evaluation answers
   and review sheets. Treat the app home like the data itself. Deleting a run in the UI removes its
   adapter, checkpoints, evaluations, exports and job logs.
+- To remove a data source completely (ingested records, uploaded files and review decisions):
+  `fliptuned sources delete <name> --confirm <name>`. Datasets already built from it keep their
+  own copies; rebuild or delete those separately.
 
 ## The web server
 

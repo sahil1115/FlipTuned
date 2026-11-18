@@ -88,6 +88,14 @@ The **sign test** treats each non-tied pair as a coin flip under the null hypoth
 p = min(1, 2 · P(X ≤ min(wins, losses))) with X ~ Binomial(wins + losses, ½), computed with exact
 integers. Ties are left out.
 
+The report also shows the fine-tuned model's **share of non-tied pairs** with a 95% Wilson
+interval, so you can see how large the difference is, not only whether it is significant.
+50% means no difference. The interval is information only; it is not a verdict criterion.
+
+**Word overlap.** `report.md` and `metrics.json` (`reference_overlap`) give the mean token F1
+between each model's answers and the approved answers. It measures similarity of wording, not
+correctness, and never affects the verdict.
+
 Every criterion is evaluated and reported, including those that didn't decide the verdict.
 Falling training loss never counts as success.
 
@@ -107,7 +115,7 @@ test set should never be used to repair data or tune settings.
 | `results.jsonl` | per item: question, reference, both answers, token counts, finish reason, check results (holds content; stays local) |
 | `metadata.json` | model repo, revision and template checksum, adapter, backend, device, precision, package versions, generation settings, baseline used, config |
 | `review_sheet.csv` | the blind A/B sheet |
-| `metrics.json` | counts, pass rates per check, per category results, regressions (item IDs), generation stats, prior exposure |
+| `metrics.json` | counts, pass rates per check, per category results, regressions (item IDs), generation stats, prior exposure, word overlap with the approved answers |
 | `verdict.json` | verdict, reasons, every criterion with value and limit, inputs, limitations |
 | `report.md` | all of the above, readable; statistics, item IDs and category labels only |
 

@@ -1,6 +1,6 @@
 [project]
 name = "fliptuned"
-version = "0.2.0"
+version = "0.2.1"
 description = "Local-first LoRA fine-tuning of small open-weight models on approved Q&A, with evaluation and chat."
 readme = "README.md"
 requires-python = ">=3.12,<3.14"

@@ -1,6 +1,6 @@
 # FlipTuned
 
-Version **v0.2.0** · Apache-2.0 · by Sahil ([@sahil1115](https://github.com/sahil1115))
+Version **v0.2.1** · Apache-2.0 · by Sahil ([@sahil1115](https://github.com/sahil1115))
 
 **Limits first.** Fine-tuning does not reliably memorize documents or recall facts, and because FlipTuned
 prohibits retrieval at inference time, this is a structural limit, not a tuning problem. The model keeps its
@@ -154,6 +154,7 @@ failure, and accepts `--home` (default `~/.fliptuned`, or `FLIPTUNED_HOME`).
 | `models list` | The model catalog and what fits on this machine (estimates) |
 | `train --config <file> [--dry-run]` | Preflight checks, then LoRA training as a job |
 | `configs list \| show <name> \| duplicate <name> <new>` | Saved, versioned training configs |
+| `sources list` / `sources delete <name> --confirm <name>` | List data sources; permanently delete one with its ingested records, uploads and review decisions |
 | `jobs list \| follow <job> \| cancel <job> \| resume <run> \| selftest` | Background jobs |
 | `evaluate --run <run>` / `--score <sheet>` / `--baseline-only --dataset <dataset>` | Base vs fine-tuned, blind review, verdict |
 | `chat --run <run> [--base] [--prompt "..."]` | Talk to the model (weights only, nothing logged) |
@@ -342,6 +343,7 @@ More: [docs/privacy.md](docs/privacy.md) and [docs/architecture.md](docs/archite
 ```text
 uv sync --extra cpu --extra web --extra dev    # or the extras for your machine
 uv run ruff check .
+uv run ruff format --check .
 uv run pytest                                  # offline suite; never downloads a model
 uv run pytest -m tiny                          # downloads a tiny test model (a few MB)
 uv run pytest -m "mlx or cuda or slow"         # hardware-specific and long tests
@@ -353,14 +355,14 @@ uv run playwright install chromium             # once, for the end-to-end tests
 uv run pytest -m e2e                           # Playwright against a real server
 ```
 
-Results for v0.2.0 (2026-11-18):
+Results for v0.2.1 (2026-11-18):
 
 | Check | Windows 11, CPU (`hf_peft`) | macOS, Apple Silicon (`mlx`) | Linux / Windows, NVIDIA (`hf_peft` CUDA) |
 |---|---|---|---|
 | `ruff check .` | passed | not run | not run |
 | `pytest` (offline suite) | 460 passed, 2 skipped (symlinks need Developer Mode) | not run | not run |
-| `pytest -m tiny` | not rerun for v0.2.0 (v0.1.0: 11 passed) | not run | not run |
-| `pytest -m "mlx or cuda or slow"` | not rerun for v0.2.0 (v0.1.0: 6 passed, 5 skipped: no Apple Silicon / no GPU) | not run | not run |
+| `pytest -m tiny` | 15 passed (CPU training → cancel → resume → evaluate → chat → merge, plus the UI flows marked `tiny`) | not run | not run |
+| `pytest -m "mlx or cuda or slow"` | not rerun since v0.1.0 (6 passed, 5 skipped: no Apple Silicon / no GPU) | not run | not run |
 | Web lint / Vitest / build | passed / 67 passed / passed | not run | not run |
 | `pytest -m e2e` | 4 passed, 1 skipped (the MLX variant: needs Apple Silicon) | not run | not run |
 
@@ -374,6 +376,10 @@ Development and tests use `./.dev-home` or pytest temp folders, never `~/.fliptu
 
 ## Changelog
 
+- **v0.2.1** (2026-11-18): documentation. The README, UI guide, evaluation, privacy and
+  troubleshooting guides now describe the v0.2.0 changes (chat Stop and cut-off notice, new dataset
+  warnings, the `max_seq_length` preflight check, the Wilson interval and word overlap, forced
+  offline mode, the wider secret scan, `sources delete`, and the out-of-memory and `serve` messages).
 - **v0.2.0** (2026-11-18): reliability, data-quality and evaluation improvements.
   - Chat: recovers after a failed or empty reply, never hangs on a generation error, stops
     generating when the client disconnects, refuses conversations longer than the model's context
