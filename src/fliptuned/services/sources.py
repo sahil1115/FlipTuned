@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import contextlib
 import secrets
+import shutil
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -18,7 +19,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from fliptuned.config.loader import format_validation_error
 from fliptuned.config.models import IngestConfig
-from fliptuned.errors import ConfigError, FlipTunedError, PathNotAllowedError
+from fliptuned.errors import ConfigError, FlipTunedError, NotAvailableError, PathNotAllowedError
 from fliptuned.platform.paths import display_path, resolve_within_roots, unsafe_reason
 from fliptuned.registry import repositories
 from fliptuned.registry.db import connect
@@ -175,6 +176,64 @@ def list_sources(home: str | None) -> list[SourceInfo]:
         )
         for r in rows
     ]
+
+
+class DeleteSourceRequest(BaseModel):
+    home: str | None = None
+    source: str = Field(description="Data source name or ID.")
+    confirm: str = Field(description="The source name typed again, to confirm the delete.")
+
+
+class DeleteSourceResult(BaseModel):
+    source_id: str
+    name: str
+    removed_folders: list[str]
+    decisions_removed: int
+    note: str
+
+
+def delete_source(request: DeleteSourceRequest) -> DeleteSourceResult:
+    """Permanently remove a data source: ingested records, uploads, review decisions."""
+    paths = open_home(request.home)
+    wanted = request.source.strip()
+    with connect(paths.db) as conn:
+        rows = repositories.list_data_sources(conn)
+        active = repositories.active_jobs(conn)
+    row = next((r for r in rows if r["id"] == wanted or r["name"].lower() == wanted.lower()), None)
+    if row is None:
+        raise NotAvailableError(
+            f"No data source called '{wanted}'.", hint="See `fliptuned sources list`."
+        )
+    if request.confirm != row["name"]:
+        raise ConfigError(
+            "The confirmation doesn't match the data source name; nothing was deleted.",
+            hint="Type the data source name exactly to delete it permanently.",
+        )
+    busy = [j for j in active if j["type"] in ("ingest", "build_dataset")]
+    if busy:
+        raise FlipTunedError(
+            f"Data source '{row['name']}' can't be deleted while {busy[0]['type']} job "
+            f"{busy[0]['id']} is {busy[0]['status']}.",
+            hint="Wait for it to finish or cancel it. `fliptuned jobs list` also clears jobs "
+            "whose process is gone.",
+        )
+    with connect(paths.db) as conn:
+        decisions = repositories.purge_data_source(conn, row["id"])
+    removed = []
+    for folder in (paths.sources / row["id"], paths.uploads / row["id"]):
+        if folder.exists() and folder.resolve().is_relative_to(paths.home.resolve()):
+            shutil.rmtree(folder)
+            removed.append(str(folder))
+    return DeleteSourceResult(
+        source_id=row["id"],
+        name=row["name"],
+        removed_folders=removed,
+        decisions_removed=decisions,
+        note=(
+            "Datasets already built from this source keep their own copies of its records; "
+            "rebuild or remove those datasets separately."
+        ),
+    )
 
 
 @contextlib.contextmanager

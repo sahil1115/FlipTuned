@@ -1,6 +1,6 @@
 # FlipTuned
 
-Version **v0.1.0** · Apache-2.0 · by Sahil ([@sahil1115](https://github.com/sahil1115))
+Version **v0.2.0** · Apache-2.0 · by Sahil ([@sahil1115](https://github.com/sahil1115))
 
 **Limits first.** Fine-tuning does not reliably memorize documents or recall facts, and because FlipTuned
 prohibits retrieval at inference time, this is a structural limit, not a tuning problem. The model keeps its
@@ -353,15 +353,15 @@ uv run playwright install chromium             # once, for the end-to-end tests
 uv run pytest -m e2e                           # Playwright against a real server
 ```
 
-Results for v0.1.0 (2026-10-31):
+Results for v0.2.0 (2026-11-18):
 
 | Check | Windows 11, CPU (`hf_peft`) | macOS, Apple Silicon (`mlx`) | Linux / Windows, NVIDIA (`hf_peft` CUDA) |
 |---|---|---|---|
 | `ruff check .` | passed | not run | not run |
-| `pytest` (offline suite) | 429 passed, 2 skipped (symlinks need Developer Mode) | not run | not run |
-| `pytest -m tiny` | 11 passed (CPU training → cancel → resume → evaluate → chat → merge, plus the UI flows marked `tiny`) | not run | not run |
-| `pytest -m "mlx or cuda or slow"` | 6 passed (catalog template tests), 5 skipped (MLX: needs Apple Silicon; CUDA: no GPU) | not run | not run |
-| Web lint / Vitest / build | passed / 64 passed / passed | not run | not run |
+| `pytest` (offline suite) | 460 passed, 2 skipped (symlinks need Developer Mode) | not run | not run |
+| `pytest -m tiny` | not rerun for v0.2.0 (v0.1.0: 11 passed) | not run | not run |
+| `pytest -m "mlx or cuda or slow"` | not rerun for v0.2.0 (v0.1.0: 6 passed, 5 skipped: no Apple Silicon / no GPU) | not run | not run |
+| Web lint / Vitest / build | passed / 67 passed / passed | not run | not run |
 | `pytest -m e2e` | 4 passed, 1 skipped (the MLX variant: needs Apple Silicon) | not run | not run |
 
 No browser request in the E2E runs left `127.0.0.1`.
@@ -374,6 +374,26 @@ Development and tests use `./.dev-home` or pytest temp folders, never `~/.fliptu
 
 ## Changelog
 
+- **v0.2.0** (2026-11-18): reliability, data-quality and evaluation improvements.
+  - Chat: recovers after a failed or empty reply, never hangs on a generation error, stops
+    generating when the client disconnects, refuses conversations longer than the model's context
+    window, has a Stop button, says when a reply was cut off at the length limit, and announces
+    streamed replies to screen readers.
+  - Training: 5% learning-rate warmup on `hf_peft`; at most three checkpoints kept per run;
+    out-of-memory failures get a clear message; preflight checks `max_seq_length` against the
+    dataset and checks free disk space before a model download; the offline, no-token environment
+    is forced for every entry point.
+  - Data: questions that differ only in case or Unicode form are grouped together; a warning when one
+    question has different approved answers or a category has no test examples; review decisions
+    follow rows that moved in a source file; every spreadsheet formula prefix is guarded in review
+    sheets; more secret formats detected (URL credentials, more token types); a broken `.xlsx` or
+    duplicate column names are reported instead of aborting or silently merging.
+  - Evaluation: Wilson confidence interval for the fine-tuned win rate, a token-F1 word-overlap score
+    against approved answers, and a note when answers were cut off at the token limit, all in
+    `report.md` and `metrics.json`.
+  - CLI: `fliptuned sources list` and `fliptuned sources delete <name> --confirm <name>`; `serve`
+    gives an install hint when the `web` extra is missing.
+  - Tests: E2E screenshots go to a temp folder unless `FLIPTUNED_E2E_SCREENSHOTS=1`.
 - **v0.1.0** (2026-10-31): first release. Data ingestion with quality and secret checks, review,
   grouped dataset builds, LoRA training (`hf_peft` on CPU/CUDA, `mlx` on Apple Silicon), blind
   evaluation with a verdict, chat and export, the CLI and the local web UI.

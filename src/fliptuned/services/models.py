@@ -12,16 +12,18 @@ from pydantic import BaseModel, Field
 
 from fliptuned.config.models import TrainingOptions
 from fliptuned.diagnostics.backend_select import BackendSelection, EnvironmentProbe
-from fliptuned.errors import NotAvailableError
+from fliptuned.errors import FlipTunedError, NotAvailableError
 from fliptuned.models.catalog import load_catalog
 from fliptuned.models.compat import Compatibility, backends_here, compatibility, select_for_entry
 from fliptuned.models.hub import is_cached
+from fliptuned.platform import detect
 from fliptuned.services.doctor import default_probe
 
 ESTIMATE_NOTE = (
     "Memory figures are catalog estimates of peak training memory at default settings, "
     "not measurements of this machine."
 )
+DOWNLOAD_MARGIN_GB = 2.0  # spare space kept free on the model-cache drive
 
 
 class ModelListRequest(BaseModel):
@@ -129,6 +131,17 @@ def start_model_download(request: ModelDownloadRequest, *, detach: bool):
         raise NotAvailableError(
             f"Model '{entry.id}' has no {backend} version.", hint="Pick another backend."
         )
+    source = entry.sources[backend]
+    if not is_cached(source):
+        _, free = detect.free_disk_gb(detect.hf_cache_dir())
+        needed = source.download_gb + DOWNLOAD_MARGIN_GB
+        if free is not None and free < needed:
+            raise FlipTunedError(
+                f"Not enough free disk space to download '{entry.id}': about {needed:g} GB "
+                f"needed, {free:.1f} GB free on the model-cache drive.",
+                hint="Free up space, or move the model cache to a bigger drive with the "
+                "HF_HOME environment variable (see docs/platforms.md).",
+            )
     params = {"model": entry.id, "backend": backend}
     return _submit(request.home, JobType.MODEL_DOWNLOAD, params, detach)
 

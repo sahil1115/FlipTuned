@@ -24,6 +24,7 @@ from fliptuned.services.review import (
     import_csv,
     list_records,
 )
+from fliptuned.utils.spreadsheet import spreadsheet_cell
 from tests.helpers.pipeline import ingest_samples
 
 runner = CliRunner()
@@ -131,6 +132,33 @@ def test_decision_goes_stale_when_content_changes(tmp_path: Path) -> None:
     assert after["row 3"].status == "approved" and not after["row 3"].decision_stale
 
 
+def test_decisions_follow_rows_that_moved(tmp_path: Path) -> None:
+    data = tmp_path / "data" / "faq.csv"
+    data.parent.mkdir()
+    config = tmp_path / "ingest.yaml"
+    config.write_text(
+        "kind: ingest\nname: faq\nsources:\n  - path: data/faq.csv\n    format: csv\n"
+        "    columns: {question: question, answer: answer}\n",
+        encoding="utf-8",
+    )
+    home = tmp_path / "home"
+    rows = ["How do I deploy?,Run the deploy pipeline.", "Who owns CI?,The platform team."]
+
+    def ingest(lines: list[str], overwrite: bool = False) -> None:
+        data.write_text("question,answer\n" + "\n".join(lines) + "\n", encoding="utf-8")
+        run_ingest(IngestRequest(config_path=str(config), home=str(home), overwrite=overwrite))
+
+    ingest(rows)
+    items = _list(home).items
+    decide(DecideRequest(home=str(home), records=[_ref(i) for i in items], status="approved"))
+
+    ingest(["What is new?,A row inserted at the top.", *rows], overwrite=True)
+    after = {i.location: i for i in _list(home).items}
+    assert after["row 2"].status == "pending_review" and after["row 2"].decision_stale
+    assert after["row 3"].status == "approved" and not after["row 3"].decision_stale
+    assert after["row 4"].status == "approved" and after["row 4"].decision_origin == "ui"
+
+
 def _read(path: Path) -> list[dict[str, str]]:
     with open(path, encoding="utf-8-sig", newline="") as handle:
         return list(csv.DictReader(handle))
@@ -201,6 +229,13 @@ def test_export_refuses_overwrite_and_escapes_formulas(tmp_path: Path) -> None:
     assert row["question"] == "'=1+1 what?" and row["answer"] == "'@SUM(A1)"
     with pytest.raises(FlipTunedError, match="already exists"):
         export_csv(ExportRequest(home=str(home), out=str(sheet)))
+
+
+def test_spreadsheet_cell_guards_every_formula_start() -> None:
+    for start in ("=", "+", "-", "@", "\t", "\r"):
+        assert spreadsheet_cell(start + "x") == "'" + start + "x"
+    assert spreadsheet_cell("plain - text") == "plain - text"
+    assert spreadsheet_cell(None) == ""
 
 
 def test_import_rejects_foreign_csv(home: Path, tmp_path: Path) -> None:

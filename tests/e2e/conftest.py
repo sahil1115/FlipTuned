@@ -120,3 +120,11 @@ def api(server: dict, method: str, path: str, body: dict | None = None) -> dict:
     )
     with urllib.request.urlopen(request, timeout=30) as response:
         return json.loads(response.read())
+
+
+@pytest.fixture(autouse=True)
+def _screenshots_stay_out_of_the_repo(request, tmp_path, monkeypatch):
+    """Screens go to a temp folder. Set FLIPTUNED_E2E_SCREENSHOTS=1 to refresh the images in
+    docs/screenshots/ on purpose (for the UI guide)."""
+    if os.environ.get("FLIPTUNED_E2E_SCREENSHOTS") != "1" and hasattr(request.module, "SHOTS"):
+        monkeypatch.setattr(request.module, "SHOTS", tmp_path / "screenshots")

@@ -6,6 +6,7 @@ import random
 from pathlib import Path
 
 from fliptuned.config.models import RecordStatus
+from fliptuned.dataset.builder import Example, categories_without_test_items, conflicting_answers
 from fliptuned.dataset.grouping import assign_groups
 from fliptuned.records.hashing import content_hash
 from fliptuned.records.schema import (
@@ -40,7 +41,7 @@ def test_priority_explicit_thread_file_cluster_singleton() -> None:
         ("s", _rec("qa_2", "Q two?", "t1", GroupSource.THREAD)),
         ("s", _rec("qa_3", "Q three?", "file:f.csv", GroupSource.SOURCE_FILE)),
         ("s", _rec("qa_4", "Q four?")),
-        ("s", _rec("qa_5", "q   FOUR?")),  # differs in case: normalization is whitespace-only
+        ("s", _rec("qa_5", "q   FOUR?")),  # differs in case and spacing only: same cluster as qa_4
         ("s", _rec("qa_6", "Q  four?")),  # same normalized question as qa_4
         ("s", _rec("qa_7", "Q one?")),  # duplicate question of an explicit group member
         ("s", _rec("qa_8", "Q eight?")),
@@ -50,7 +51,7 @@ def test_priority_explicit_thread_file_cluster_singleton() -> None:
     assert got[1].key == "s/thread/t1" and got[1].source is GroupSource.THREAD
     assert got[2].key == "s/source_file/file:f.csv" and got[2].source is GroupSource.SOURCE_FILE
     assert got[3].source is GroupSource.DUPLICATE_CLUSTER and got[3].key == got[5].key
-    assert got[4].source is GroupSource.SINGLETON
+    assert got[4].source is GroupSource.DUPLICATE_CLUSTER and got[4].key == got[3].key
     assert got[6].key == got[0].key and got[6].source is GroupSource.DUPLICATE_CLUSTER
     assert got[7].source is GroupSource.SINGLETON and got[7].key == "single/s/qa_8"
 
@@ -94,3 +95,28 @@ def test_csv_without_group_columns_is_not_one_group(tmp_path: Path) -> None:
     groups = assign_groups([(result.data_source_id, r) for r in records])
     assert len({g.key for g in groups}) == 20
     assert {g.source for g in groups} == {GroupSource.SINGLETON}
+
+
+def test_conflicting_answers_are_counted() -> None:
+    examples = [
+        Example("s", _rec("qa_1", "Same?"), 10, False),
+        Example("s", _rec("qa_2", "Same?"), 10, False),
+        Example("s", _rec("qa_3", "Other?"), 10, False),
+    ]
+    assert conflicting_answers(examples) == (1, 2)
+    assert conflicting_answers(examples[1:]) == (0, 0)
+
+
+def test_categories_without_test_items() -> None:
+    def example(number: int, category: str) -> Example:
+        record = _rec(f"qa_{number}", f"Q{number}?").model_copy(update={"category": category})
+        return Example("s", record, 10, False)
+
+    partitions = {
+        "train": [example(i, "coding") for i in range(1, 6)] + [example(6, "ops")],
+        "valid": [],
+        "test": [example(7, "ops")],
+    }
+    assert categories_without_test_items(partitions) == ["coding"]
+    partitions["test"].append(example(8, "coding"))
+    assert categories_without_test_items(partitions) == []

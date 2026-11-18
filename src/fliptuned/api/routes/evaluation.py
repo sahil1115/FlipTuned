@@ -152,7 +152,9 @@ def _reply(session: chat.ChatSession, turns: list[dict[str, str]]) -> Iterator[b
             yield format_sse_event(
                 data_str=json.dumps({"text": piece}, ensure_ascii=False), event="delta"
             )
-        yield format_sse_event(data_str="{}", event="done")
+        yield format_sse_event(
+            data_str=json.dumps({"finish_reason": session.last_finish_reason}), event="done"
+        )
     except (FlipTunedError, ValueError) as exc:
         message = (
             exc.message if isinstance(exc, FlipTunedError) else f"Invalid conversation: {exc}."

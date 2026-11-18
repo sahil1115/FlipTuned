@@ -7,6 +7,7 @@ from typing import Any
 
 from fliptuned.evaluation.checks import CHECKS
 from fliptuned.evaluation.metrics import CheckSummary, EvaluationMetrics
+from fliptuned.evaluation.stats import win_rate_interval
 from fliptuned.evaluation.verdict import CATEGORY_MIN_ITEMS, Verdict
 
 _SIDE_LABELS = {"base": "base", "tuned": "fine-tuned"}
@@ -29,11 +30,23 @@ def _checks_table(summary: CheckSummary) -> list[str]:
     return lines
 
 
+def win_rate_line(wins: int, losses: int) -> str:
+    interval = win_rate_interval(wins, losses)
+    if interval is None:
+        return "- Fine-tuned share of non-tied pairs: no pair has a winner yet"
+    rate, low, high = interval
+    return (
+        f"- Fine-tuned share of non-tied pairs: {rate:.0%} "
+        f"(95% Wilson interval {low:.0%}–{high:.0%}; 50% means no difference)"
+    )
+
+
 def render_report(
     metrics: EvaluationMetrics,
     verdict: Verdict,
     meta: dict[str, Any],
     limitations: list[str],
+    overlap: dict[str, float] | None = None,
 ) -> str:
     m = metrics
     out = [
@@ -72,6 +85,7 @@ def render_report(
         f"- Test items: {m.test_items}; reviewed: {m.judged} ({m.review_coverage:.0%})",
         f"- Fine-tuned wins: {m.wins}; base wins: {m.losses}; ties: {m.ties}",
         f"- Exact two-sided sign test on {m.wins + m.losses} non-tied pairs: p = {m.sign_test_p:.4g}",
+        win_rate_line(m.wins, m.losses),
         "- Judgements by origin: "
         + (", ".join(f"{k} {v}" for k, v in m.judgements_by_origin.items()) or "none yet"),
         "",
@@ -107,6 +121,16 @@ def render_report(
         ]
     else:
         out.append("None: the fine-tuned answers pass every check the base answers pass.")
+    out += ["", "## Word overlap with the approved answers", ""]
+    if overlap is None:
+        out.append("Not available (no reference answers).")
+    else:
+        out.append(
+            f"Mean token F1 over {int(overlap['items'])} test items: base "
+            f"{overlap['base']:.2f}, fine-tuned {overlap['tuned']:.2f}. This measures "
+            "similarity of wording to the approved answers, not correctness, and does not "
+            "affect the verdict."
+        )
     out += ["", "## Limitations", ""]
     out += [f"- {line}" for line in limitations]
     out += [

@@ -150,6 +150,29 @@ def test_unexpected_error_hides_its_message(
     assert "SECRET" not in (folder / "events.jsonl").read_text(encoding="utf-8")
 
 
+def test_out_of_memory_gets_a_clear_message(
+    runner: LocalJobRunner, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class OutOfMemoryError(RuntimeError):
+        pass
+
+    for exc in (
+        MemoryError("SECRET"),
+        OutOfMemoryError("SECRET"),
+        RuntimeError("CUDA out of memory"),
+    ):
+
+        def boom(ctx, exc=exc):
+            raise exc
+
+        monkeypatch.setitem(handlers.HANDLERS, JobType.SELFTEST, boom)
+        job_id = runner.submit(JobType.SELFTEST, {}, detach=False)
+        assert runner.run_inline(job_id) is JobStatus.FAILED
+        error = json.loads((runner.paths.jobs / job_id / "error.json").read_text("utf-8"))
+        assert error["message"] == "The job ran out of memory."
+        assert "batch_size" in error["hint"] and "SECRET" not in json.dumps(error)
+
+
 def test_keyboard_interrupt_cancels_and_reraises(
     runner: LocalJobRunner, monkeypatch: pytest.MonkeyPatch
 ) -> None:

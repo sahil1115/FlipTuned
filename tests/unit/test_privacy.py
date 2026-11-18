@@ -15,6 +15,11 @@ FAKE = {
     "account_key": "DefaultEndpointsProtocol=https;AccountKey=FAKEfakeFAKEfakeFAKEfake0123==;",
     "password_assignment": 'db_password: "hunter2hunter2"',
     "private_key": "-----BEGIN RSA PRIVATE KEY-----\nMIIfake\n-----END RSA PRIVATE KEY-----",
+    "url_credentials": "clone https://deploy:s3cretpw99@git.example.com/repo.git",
+    "hf_token": "token " + "hf_" + "FAKEfake" * 4 + "12",
+    "gitlab_token": "use " + "glpat-" + "FAKEfake" * 2 + "FAKE1 here",
+    "stripe_key": "key " + "sk_live_" + "FAKEfake" * 3,
+    "bearer_token": "Authorization: Bearer " + "FAKEfake" * 3 + "1234",
 }
 
 
@@ -39,6 +44,9 @@ def test_builtin_patterns_detect_fake_secrets(kind: str) -> None:
         "max_tokens = 100000",
         "token = os.environ['API_TOKEN']",
         "Count tokens: tokenizer.encode(text)",
+        "see https://example.com:8080/path for the port",
+        "https://user:<password>@host/x",
+        "Use a Bearer token in the header",
     ],
 )
 def test_placeholders_and_prose_are_not_flagged(text: str) -> None:

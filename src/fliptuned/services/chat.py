@@ -47,7 +47,7 @@ from fliptuned.services.jobs import (
 )
 from fliptuned.services.runs import load_run
 from fliptuned.training.backends import get_backend, load_model
-from fliptuned.training.backends.base import GenerationConfig
+from fliptuned.training.backends.base import ContextTooLongError, GenerationConfig
 
 SESSION_FILE = "chat.json"
 DEFAULT_IDLE_MIN = 10
@@ -113,6 +113,7 @@ class ChatSession:
         self._paths = AppPaths(resolve_app_home(home).path)
         self._thread = thread
         self._endpoint: tuple[int, str] | None = None
+        self.last_finish_reason: str | None = None
 
     @property
     def job_id(self) -> str:
@@ -169,6 +170,7 @@ class ChatSession:
     def reply(self, turns: list[dict[str, str]]) -> Iterator[str]:
         """Stream the model's reply to ``turns`` (alternating user/assistant, ending with user)."""
         validate_turns(turns)
+        self.last_finish_reason = None
         conn = self._request({"op": "generate", "turns": turns})
         conn.settimeout(None)  # generation can take a while on CPU
         with conn, conn.makefile("r", encoding="utf-8", newline="\n") as lines:
@@ -177,6 +179,7 @@ class ChatSession:
                 if message["type"] == "delta":
                     yield message["text"]
                 elif message["type"] == "done":
+                    self.last_finish_reason = message.get("finish_reason")
                     return
                 else:
                     raise ChatSessionError(
@@ -263,6 +266,16 @@ def _write_session_file(folder: Path, port: int, token: str) -> Path:
     return path
 
 
+def _reply_error(exc: Exception) -> str:
+    """What to tell the client. Only the exception type: messages can contain chat text."""
+    if isinstance(exc, ContextTooLongError):
+        return "The conversation is too long for this model. Start a new chat."
+    name = type(exc).__name__
+    if isinstance(exc, MemoryError) or name == "OutOfMemoryError":
+        return "The model ran out of memory while answering. Try a shorter message or start a new chat."
+    return f"The model failed to answer ({name}). Try again, or load the model again."
+
+
 def serve_chat(ctx: JobContext) -> dict[str, Any]:
     """Handler of the ``chat_session`` job."""
     params = ctx.params
@@ -324,12 +337,25 @@ def serve_chat(ctx: JobContext) -> dict[str, Any]:
                         _send(conn, {"type": "error", "message": f"Invalid conversation: {exc}."})
                     continue
                 requests += 1
-                with contextlib.suppress(OSError):  # the client may hang up mid-reply
+                try:
                     for piece in reply_stream(
                         backend, loaded, run.system_prompt, turns, generation
                     ):
                         _send(conn, {"type": "delta", "text": piece})
-                    _send(conn, {"type": "done"})
+                    _send(
+                        conn,
+                        {"type": "done", "finish_reason": loaded.extra.get("last_finish_reason")},
+                    )
+                except OSError:
+                    pass  # the client hung up mid-reply
+                except Exception as exc:  # generation failed: tell the client, keep serving
+                    ctx.emit(
+                        "log",
+                        level="warning",
+                        message=f"A reply failed with {type(exc).__name__}.",
+                    )
+                    with contextlib.suppress(OSError):
+                        _send(conn, {"type": "error", "message": _reply_error(exc)})
                 last = time.monotonic()
     finally:
         server.close()

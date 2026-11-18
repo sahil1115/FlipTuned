@@ -19,7 +19,7 @@ from fliptuned.models.tokenizer import load_tokenizer
 from fliptuned.services.datasets import BuildDatasetRequest, build_dataset
 from fliptuned.services.evaluation import BaselineRequest, run_baseline
 from fliptuned.training import backends as registry
-from fliptuned.training.backends.base import GenerationConfig
+from fliptuned.training.backends.base import ContextTooLongError, GenerationConfig
 from fliptuned.training.templates import SAMPLE_CONVERSATIONS, prefix_test, prompt_ids
 from tests.helpers.pipeline import SAMPLE_DATASET, ingest_samples
 
@@ -42,6 +42,56 @@ def test_tiny_load_and_generate_on_cpu(tiny_cpu) -> None:
     assert first.completion_tokens <= 16 and first.prompt_tokens > 0
     assert "".join(backend.stream(loaded, MESSAGES[:-1], config)) == first.text
     assert len(loaded.template_checksum) == 64
+
+
+@pytest.mark.tiny
+def test_tiny_stream_raises_instead_of_hanging(tiny_cpu, monkeypatch) -> None:
+    backend, loaded = tiny_cpu
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("generation failed")
+
+    monkeypatch.setattr(loaded.model, "generate", boom)
+    with pytest.raises(RuntimeError):
+        list(backend.stream(loaded, MESSAGES[:-1], GenerationConfig(max_new_tokens=4)))
+
+
+@pytest.mark.tiny
+def test_tiny_stream_stops_when_the_reader_leaves(tiny_cpu, monkeypatch) -> None:
+    backend, loaded = tiny_cpu
+    lengths: list[int] = []
+    real_generate = loaded.model.generate
+
+    def recording(*args, **kwargs):
+        output = real_generate(*args, **kwargs)
+        lengths.append(int(output.shape[1]) - int(kwargs["input_ids"].shape[1]))
+        return output
+
+    monkeypatch.setattr(loaded.model, "generate", recording)
+    stream = backend.stream(loaded, MESSAGES[:-1], GenerationConfig(max_new_tokens=512))
+    next(stream)
+    stream.close()  # runs the finally block: sets the stop event and joins the thread
+    assert lengths and lengths[0] < 256  # stopped long before the 512-token budget
+
+
+@pytest.mark.tiny
+def test_tiny_stream_records_the_finish_reason(tiny_cpu) -> None:
+    backend, loaded = tiny_cpu
+    config = GenerationConfig(max_new_tokens=4)
+    expected = backend.generate(loaded, MESSAGES[:-1], config).finish_reason
+    "".join(backend.stream(loaded, MESSAGES[:-1], config))
+    assert loaded.extra["last_finish_reason"] == expected
+
+
+@pytest.mark.tiny
+def test_tiny_context_limit_is_enforced(tiny_cpu, monkeypatch) -> None:
+    backend, loaded = tiny_cpu
+    monkeypatch.setattr(loaded.model.config, "max_position_embeddings", 8)
+    config = GenerationConfig(max_new_tokens=4)
+    with pytest.raises(ContextTooLongError):
+        backend.generate(loaded, MESSAGES[:-1], config)
+    with pytest.raises(ContextTooLongError):
+        list(backend.stream(loaded, MESSAGES[:-1], config))
 
 
 @pytest.mark.tiny

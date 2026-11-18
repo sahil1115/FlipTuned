@@ -158,6 +158,36 @@ def test_missing_required_column_is_reported_not_dropped(tmp_path: Path) -> None
     assert "'Question'" in result.outcome.files[0].errors[0]
 
 
+def test_broken_xlsx_is_reported_not_fatal(tmp_path: Path) -> None:
+    bad = tmp_path / "data" / "broken.xlsx"
+    bad.parent.mkdir()
+    bad.write_bytes(b"this is not a workbook")
+    config = tmp_path / "x.yaml"
+    config.write_text(
+        f"kind: ingest\nname: broken\nsources:\n  - path: {json.dumps(str(bad))}\n"
+        "    format: xlsx\n    columns: {question: question, answer: answer}\n",
+        encoding="utf-8",
+    )
+    result = run_ingest(IngestRequest(config_path=str(config), home=str(tmp_path / "h")))
+    assert result.counts.records_total == 0
+    assert "not a valid .xlsx file" in result.outcome.files[0].errors[0]
+
+
+def test_duplicate_column_names_are_reported(tmp_path: Path) -> None:
+    data = tmp_path / "data" / "dup.csv"
+    data.parent.mkdir()
+    data.write_text("question,answer,answer\nQ one?,first,second\n", encoding="utf-8")
+    config = tmp_path / "d.yaml"
+    config.write_text(
+        f"kind: ingest\nname: dup\nsources:\n  - path: {json.dumps(str(data))}\n"
+        "    format: csv\n    columns: {question: question, answer: answer}\n",
+        encoding="utf-8",
+    )
+    result = run_ingest(IngestRequest(config_path=str(config), home=str(tmp_path / "h")))
+    assert result.counts.records_total == 0
+    assert "'answer' appear more than once" in result.outcome.files[0].errors[0]
+
+
 def test_ingest_is_deterministic(tmp_path: Path) -> None:
     a = run_ingest(IngestRequest(config_path=str(SAMPLE), home=str(tmp_path / "a")))
     b = run_ingest(IngestRequest(config_path=str(SAMPLE), home=str(tmp_path / "b")))

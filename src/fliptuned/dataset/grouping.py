@@ -5,7 +5,7 @@ Priority, per record:
 1. explicit group column;
 2. thread/ticket column;
    (``group_by_source_file`` is an explicit per-file opt-in and sits here, after the columns);
-3. duplicate cluster: records whose normalized question is identical. A record without its own
+3. duplicate cluster: records whose question is identical after whitespace, Unicode (NFKC) and letter-case normalization. A record without its own
    group joins the group of a matching record that has one; otherwise matching records form a
    cluster group. Matching normalized Q&A hashes imply matching questions, so this covers both;
 4. singleton.
@@ -16,6 +16,7 @@ The result never depends on input order (owners are picked by smallest key).
 
 from __future__ import annotations
 
+import unicodedata
 from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -33,7 +34,9 @@ class GroupAssignment:
 
 
 def question_key(record: Record) -> str:
-    return sha256_hex(normalize_for_dedup(record.question or ""))
+    """Same key for questions that differ only in whitespace, letter case or Unicode form."""
+    text = unicodedata.normalize("NFKC", normalize_for_dedup(record.question or ""))
+    return sha256_hex(text.casefold())
 
 
 def assign_groups(items: Sequence[tuple[str, Record]]) -> list[GroupAssignment]:

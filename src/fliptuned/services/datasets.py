@@ -56,7 +56,7 @@ from fliptuned.utils.logging import get_logger
 
 log = get_logger(__name__)
 
-BUILDER_VERSION = "1"
+BUILDER_VERSION = "2"
 
 
 class BuildDatasetRequest(BaseModel):

@@ -38,6 +38,19 @@ class BackendCapabilities(BaseModel):
     reasons: list[str] = Field(description="Why each device is or isn't available.")
 
 
+class ContextTooLongError(ValueError):
+    """The prompt plus the reply budget doesn't fit the model's context window."""
+
+    def __init__(self, prompt_tokens: int, max_new_tokens: int, limit: int):
+        super().__init__(
+            f"{prompt_tokens} prompt tokens + {max_new_tokens} reply tokens exceed the "
+            f"model's limit of {limit} tokens"
+        )
+        self.prompt_tokens = prompt_tokens
+        self.max_new_tokens = max_new_tokens
+        self.limit = limit
+
+
 class GenerationConfig(BaseModel):
     """Always greedy, so results are repeatable."""
 

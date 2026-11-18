@@ -109,14 +109,36 @@ def effective(record: Record, decision: sqlite3.Row | None) -> tuple[RecordStatu
     return RecordStatus(decision["status"]), False
 
 
+def _moved_decisions(
+    source_id: str, records: list[Record], decisions: dict[tuple[str, str], sqlite3.Row]
+) -> dict[str, sqlite3.Row]:
+    """Latest decision per content hash among this source's decisions that no longer match
+    the record at their ID (the record is gone or now holds other content). Record IDs come
+    from row positions, so these are decisions whose row moved in the file."""
+    current = {r.id: r.content_hash for r in records}
+    moved: dict[str, sqlite3.Row] = {}
+    for (decided_source, record_id), decision in decisions.items():
+        content = decision["content_hash"]
+        if decided_source != source_id or content is None or current.get(record_id) == content:
+            continue
+        if content not in moved or decision["id"] > moved[content]["id"]:
+            moved[content] = decision
+    return moved
+
+
 def load_reviewed(
     conn: sqlite3.Connection, paths: AppPaths, source_ids: list[str]
 ) -> list[ReviewedRecord]:
     decisions = repositories.latest_review_decisions(conn, source_ids)
     out: list[ReviewedRecord] = []
     for source_id in source_ids:
-        for record in load_records(source_dir(paths, source_id) / RECORDS_FILE):
+        records = load_records(source_dir(paths, source_id) / RECORDS_FILE)
+        moved = _moved_decisions(source_id, records, decisions)
+        for record in records:
             decision = decisions.get((source_id, record.id))
+            if decision is None or decision["content_hash"] != record.content_hash:
+                # The row may have moved in the file: reuse the decision made for this content.
+                decision = moved.get(record.content_hash, decision)
             status, stale = effective(record, decision)
             out.append(
                 ReviewedRecord(

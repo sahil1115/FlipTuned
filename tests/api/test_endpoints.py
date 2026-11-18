@@ -167,6 +167,16 @@ def test_model_download_job_is_queued_not_run(client: TestClient) -> None:
     )
 
 
+def test_model_download_is_refused_without_disk_space(client: TestClient, monkeypatch) -> None:
+    from fliptuned.services import models as models_service
+
+    monkeypatch.setattr(models_service, "is_cached", lambda source: False)
+    monkeypatch.setattr(models_service.detect, "free_disk_gb", lambda path: (path, 0.0))
+    response = client.post("/api/models/tiny-qwen2/download", json={"backend": "hf_peft"})
+    assert response.status_code == 400
+    assert "disk space" in response.json()["error"]["message"]
+
+
 def test_config_and_training_endpoints(client: TestClient, home: Path, monkeypatch) -> None:
     config = {"name": "api-cfg", "model": {"catalog_id": "tiny-qwen2"}, "preset": "quick"}
     saved = client.post("/api/configs", json={"config": config})
@@ -214,7 +224,9 @@ def test_resume_refused_while_another_job_holds_the_model(client: TestClient, ho
     assert state["lock_holder"]["job_id"] == holder and not state["can_resume"]
     refused = client.post(f"/api/runs/{run_id}/resume", json={})
     assert refused.status_code == 409
-    assert refused.json()["error"]["message"].startswith(f"Another job is using the model: {holder}")
+    assert refused.json()["error"]["message"].startswith(
+        f"Another job is using the model: {holder}"
+    )
 
 
 def test_evaluation_endpoints(client: TestClient, home: Path, fake: FakeBackend) -> None:
@@ -390,7 +402,9 @@ def test_history_endpoints(client: TestClient, home: Path) -> None:
     assert [r["id"] for r in client.get("/api/history").json()] == [b]
     assert len(client.get("/api/history", params={"include_archived": True}).json()) == 2
     refused = client.post(f"/api/runs/{b}/delete", json={"confirm": "nope"})
-    assert refused.status_code == 422 and "nothing was deleted" in refused.json()["error"]["message"]
+    assert (
+        refused.status_code == 422 and "nothing was deleted" in refused.json()["error"]["message"]
+    )
     deleted = client.post(f"/api/runs/{b}/delete", json={"confirm": b})
     assert deleted.status_code == 200 and client.get(f"/api/runs/{b}").status_code == 404
 

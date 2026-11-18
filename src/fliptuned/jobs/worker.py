@@ -125,6 +125,13 @@ def _log_unexpected(path: Path, exc: BaseException) -> None:
         handle.write(f"Unexpected {type(exc).__name__} (message withheld)\n{frames}\n")
 
 
+def _is_out_of_memory(exc: BaseException) -> bool:
+    """torch.OutOfMemoryError (a RuntimeError), Python's MemoryError, or an MLX/Metal message."""
+    if isinstance(exc, MemoryError) or type(exc).__name__ == "OutOfMemoryError":
+        return True
+    return isinstance(exc, RuntimeError) and "out of memory" in str(exc).lower()
+
+
 def execute(
     paths: AppPaths,
     job_id: str,
@@ -181,12 +188,24 @@ def execute(
     except Exception as exc:
         final = JobStatus.FAILED
         _log_unexpected(folder / LOG_FILE, exc)
-        error = {
-            "message": f"The job failed with an unexpected {type(exc).__name__}.",
-            "hint": f"See the job log: {folder / LOG_FILE}",
-            "details": None,
-            "exit_code": int(ExitCode.ERROR),
-        }
+        if _is_out_of_memory(exc):
+            error = {
+                "message": "The job ran out of memory.",
+                "hint": (
+                    "Lower training.batch_size or training.max_seq_length, pick a smaller "
+                    "model, or close other programs. See docs/troubleshooting.md "
+                    "(Out of memory)."
+                ),
+                "details": type(exc).__name__,
+                "exit_code": int(ExitCode.ERROR),
+            }
+        else:
+            error = {
+                "message": f"The job failed with an unexpected {type(exc).__name__}.",
+                "hint": f"See the job log: {folder / LOG_FILE}",
+                "details": None,
+                "exit_code": int(ExitCode.ERROR),
+            }
 
     if result is not None:
         _write_json(folder / RESULT_FILE, result)

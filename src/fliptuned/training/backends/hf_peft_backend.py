@@ -12,7 +12,7 @@ import time
 from collections.abc import Iterator
 from importlib import metadata
 from pathlib import Path
-from threading import Thread
+from threading import Event, Thread
 from typing import Any
 
 import psutil
@@ -29,6 +29,7 @@ from fliptuned.models.catalog import CatalogEntry
 from fliptuned.training.backends.base import (
     ADAPTER_DIR,
     BackendCapabilities,
+    ContextTooLongError,
     GenerationConfig,
     GenerationResult,
     LoadedModel,
@@ -83,13 +84,14 @@ def sft_config_kwargs(
         "per_device_eval_batch_size": training.batch_size,
         "gradient_accumulation_steps": training.grad_accumulation_steps,
         "learning_rate": training.learning_rate,
+        "warmup_steps": 0.05,  # a float below 1 is a share of the total steps (Transformers 5)
         "max_length": training.max_seq_length,
         "completion_only_loss": True,
         "eval_strategy": "steps",
         "eval_steps": training.eval_every_steps,
         "save_strategy": "steps",
         "save_steps": training.eval_every_steps,
-        "save_total_limit": None,
+        "save_total_limit": 3,
         "load_best_model_at_end": True,
         "metric_for_best_model": "eval_loss",
         "greater_is_better": False,
@@ -310,6 +312,10 @@ class HfPeftBackend(TrainingBackend):
             return_tensors="pt",
             **loaded.template_kwargs,
         )
+        limit = getattr(getattr(loaded.model, "config", None), "max_position_embeddings", None)
+        prompt_len = int(encoded["input_ids"].shape[1])
+        if isinstance(limit, int) and prompt_len + config.max_new_tokens > limit:
+            raise ContextTooLongError(prompt_len, config.max_new_tokens, limit)
         encoded = {k: v.to(loaded.model.device) for k, v in encoded.items()}
         settings = {
             "max_new_tokens": config.max_new_tokens,
@@ -347,16 +353,41 @@ class HfPeftBackend(TrainingBackend):
         self, loaded: LoadedModel, messages: Messages, config: GenerationConfig
     ) -> Iterator[str]:
         import torch
-        from transformers import TextIteratorStreamer
+        from transformers import StoppingCriteria, StoppingCriteriaList, TextIteratorStreamer
 
         encoded, settings = self._inputs(loaded, messages, config)
+        prompt_len = int(encoded["input_ids"].shape[1])
+        loaded.extra["last_finish_reason"] = None
         streamer = TextIteratorStreamer(
             loaded.tokenizer, skip_prompt=True, skip_special_tokens=True
         )
+        errors: list[Exception] = []
+        stop = Event()
+
+        class _StopOnEvent(StoppingCriteria):
+            def __call__(self, input_ids, scores, **kwargs):
+                return torch.full(
+                    (input_ids.shape[0],), stop.is_set(), dtype=torch.bool, device=input_ids.device
+                )
 
         def run() -> None:
-            with torch.inference_mode():
-                loaded.model.generate(**encoded, **settings, streamer=streamer)
+            try:
+                with torch.inference_mode():
+                    output = loaded.model.generate(
+                        **encoded,
+                        **settings,
+                        streamer=streamer,
+                        stopping_criteria=StoppingCriteriaList([_StopOnEvent()]),
+                    )
+                new_ids = output[0, prompt_len:].tolist()
+                stopped = bool(new_ids) and new_ids[-1] in loaded.extra.get("eos_ids", ())
+                loaded.extra["last_finish_reason"] = (
+                    "length" if not stopped and len(new_ids) >= config.max_new_tokens else "stop"
+                )
+            except Exception as exc:
+                errors.append(exc)
+                # Wake the reader: without the stop signal it would wait forever.
+                streamer.text_queue.put(streamer.stop_signal)
 
         worker = Thread(target=run, daemon=True)
         worker.start()
@@ -365,7 +396,10 @@ class HfPeftBackend(TrainingBackend):
                 if piece:
                     yield piece
         finally:
+            stop.set()  # the reader left (done, error, or hung up): stop generating now
             worker.join()
+        if errors:
+            raise errors[0]
 
     # ------------------------------------------------------------------ training
 

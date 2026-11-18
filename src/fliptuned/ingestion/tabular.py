@@ -29,6 +29,21 @@ class TableRead:
     errors: list[str] = field(default_factory=list)
 
 
+def _duplicate_names(headers: list[str]) -> list[str]:
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for name in headers:
+        if name and name in seen and name not in duplicates:
+            duplicates.append(name)
+        seen.add(name)
+    return duplicates
+
+
+def _duplicates_error(duplicates: list[str]) -> str:
+    names = ", ".join(repr(d) for d in duplicates)
+    return f"column name(s) {names} appear more than once; rename them so each is unique"
+
+
 def read_csv(path: Path, encoding: str) -> TableRead:
     decoded = decode_bytes(path.read_bytes(), encoding)
     result = TableRead(valid_encoding=decoded.valid)
@@ -43,6 +58,10 @@ def read_csv(path: Path, encoding: str) -> TableRead:
         return result
     headers = [h.strip() for h in header]
     result.headers[None] = headers
+    duplicates = _duplicate_names(headers)
+    if duplicates:
+        result.errors.append(_duplicates_error(duplicates))
+        return result
     row_number = 1
     try:
         for cells in reader:
@@ -54,10 +73,19 @@ def read_csv(path: Path, encoding: str) -> TableRead:
 
 
 def read_xlsx(path: Path, sheet: str | None) -> TableRead:
+    from zipfile import BadZipFile
+
     from openpyxl import load_workbook
+    from openpyxl.utils.exceptions import InvalidFileException
 
     result = TableRead()
-    workbook = load_workbook(path, read_only=True, data_only=True)
+    try:
+        workbook = load_workbook(path, read_only=True, data_only=True)
+    except (BadZipFile, InvalidFileException, KeyError, OSError, ValueError) as exc:
+        result.errors.append(
+            f"could not open the workbook ({type(exc).__name__}); it is not a valid .xlsx file"
+        )
+        return result
     try:
         names = workbook.sheetnames
         if sheet is not None and sheet not in names:
@@ -70,6 +98,10 @@ def read_xlsx(path: Path, sheet: str | None) -> TableRead:
                 continue
             headers = [_cell_text(h).strip() for h in header]
             result.headers[name] = headers
+            duplicates = _duplicate_names(headers)
+            if duplicates:
+                result.errors.append(f"sheet '{name}': {_duplicates_error(duplicates)}")
+                continue
             for row_number, values in enumerate(rows, start=2):
                 _add_row(result, headers, [_cell_text(v) for v in values], row_number, name)
     finally:

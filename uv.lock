@@ -349,7 +349,7 @@ wheels = [
 
 [[package]]
 name = "fliptuned"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "datasets", marker = "(platform_machine == 'arm64' and sys_platform == 'darwin') or (platform_machine == 'AMD64' and sys_platform == 'win32') or sys_platform == 'linux' or (sys_platform != 'darwin' and sys_platform != 'win32' and extra == 'extra-9-fliptuned-cpu' and extra == 'extra-9-fliptuned-cuda') or (sys_platform != 'darwin' and sys_platform != 'win32' and extra == 'extra-9-fliptuned-cpu' and extra == 'extra-9-fliptuned-qlora') or (sys_platform == 'darwin' and extra == 'extra-9-fliptuned-cpu' and extra == 'extra-9-fliptuned-cuda') or (sys_platform == 'darwin' and extra == 'extra-9-fliptuned-cpu' and extra == 'extra-9-fliptuned-qlora') or (sys_platform == 'win32' and extra == 'extra-9-fliptuned-cpu' and extra == 'extra-9-fliptuned-cuda') or (sys_platform == 'win32' and extra == 'extra-9-fliptuned-cpu' and extra == 'extra-9-fliptuned-qlora')" },

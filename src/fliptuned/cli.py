@@ -22,9 +22,10 @@ from fliptuned.services import models as models_service
 from fliptuned.services import review as review_service
 from fliptuned.services import runtime
 from fliptuned.services import scan as scan_service
+from fliptuned.services import sources as sources_service
 from fliptuned.services import status as status_service
 from fliptuned.services import training as training_service
-from fliptuned.services.errors import ExitCode, FlipTunedError
+from fliptuned.services.errors import ExitCode, FlipTunedError, NotAvailableError
 
 app = typer.Typer(
     name="fliptuned",
@@ -1220,9 +1221,20 @@ def serve(
     verbose: VerboseOption = False,
 ) -> None:
     """Start the local web app on 127.0.0.1 (only this computer can reach it)."""
-    # The one adapter-to-adapter import: the CLI starts the API server (no business logic).
-    from fliptuned.api.server import prepare, run
 
+    # The one adapter-to-adapter import: the CLI starts the API server (no business logic).
+    def load_server():
+        try:
+            from fliptuned.api.server import prepare, run
+        except ImportError:
+            raise NotAvailableError(
+                "The web app needs the 'web' extra, which isn't installed.",
+                hint="Run `uv run fliptuned doctor --suggest-install` and use the command "
+                "it prints (it includes `--extra web`).",
+            ) from None
+        return prepare, run
+
+    prepare, run = _call(load_server, verbose)
     plan = _call(lambda: prepare(home, port), verbose)
     if plan.reconciled:
         typer.echo(f"Marked {len(plan.reconciled)} job(s) whose process was gone as interrupted.")
@@ -1230,6 +1242,60 @@ def serve(
     typer.echo(f"Open this link (it includes this session's access token):\n  {plan.url}")
     typer.echo("Press Ctrl+C to stop.")
     _call(lambda: run(plan, home, open_browser=not no_browser), verbose)
+
+
+# --------------------------------------------------------------------------- sources
+
+sources_app = typer.Typer(
+    help="Data sources: list them, or delete one with its records.", no_args_is_help=True
+)
+app.add_typer(sources_app, name="sources")
+
+
+@sources_app.command("list")
+def sources_list(
+    home: HomeOption = None, as_json: JsonOption = False, verbose: VerboseOption = False
+) -> None:
+    """Data sources that were scanned or ingested."""
+    rows = _call(lambda: sources_service.list_sources(home), verbose)
+    if as_json:
+        typer.echo(json.dumps([r.model_dump(mode="json") for r in rows], indent=2))
+        return
+    if not rows:
+        typer.echo("No data sources yet.")
+    for r in rows:
+        typer.echo(f"{r.name:<24} {r.id}  {r.status}  {r.updated_at}")
+
+
+@sources_app.command("delete")
+def sources_delete(
+    name: Annotated[str, typer.Argument(help="Data source name or ID.", show_default=False)],
+    confirm: Annotated[
+        str,
+        typer.Option(
+            "--confirm", help="The data source name again, to confirm the permanent delete."
+        ),
+    ],
+    home: HomeOption = None,
+    as_json: JsonOption = False,
+    verbose: VerboseOption = False,
+) -> None:
+    """Permanently delete a data source: its ingested records, uploads and review decisions."""
+    result = _call(
+        lambda: sources_service.delete_source(
+            sources_service.DeleteSourceRequest(home=home, source=name, confirm=confirm)
+        ),
+        verbose,
+    )
+    if as_json:
+        _print_json(result)
+        return
+    typer.echo(
+        f"Deleted data source {result.name} ({result.source_id}): "
+        f"{result.decisions_removed} review decision(s), "
+        f"{len(result.removed_folders)} folder(s) removed."
+    )
+    typer.echo(f"  ! {result.note}")
 
 
 # --------------------------------------------------------------------------- configs

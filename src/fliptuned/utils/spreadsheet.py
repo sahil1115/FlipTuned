@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-FORMULA_START = ("=", "+", "@")
+FORMULA_START = ("=", "+", "-", "@", "\t", "\r")
 
 
 def spreadsheet_cell(value: str | None) -> str:

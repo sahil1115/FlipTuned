@@ -19,11 +19,12 @@ from fliptuned.config.models import DatasetConfig, RecordStatus
 from fliptuned.dataset.grouping import GroupAssignment, assign_groups, question_key
 from fliptuned.dataset.split import PARTITIONS, SplitResult, split_groups
 from fliptuned.models.tokenizer import TokenCounter
-from fliptuned.records.hashing import dedup_key, sha256_hex
+from fliptuned.records.hashing import dedup_key, normalize_for_dedup, sha256_hex
 from fliptuned.records.schema import Record, RecordType
 
 LARGE_GROUP_SHARE = 0.10  # of all approved records (SPEC §9.2)
 DOMINANT_GROUP_SHARE = 1 / 3  # of the valid or test partition
+CATEGORY_MIN_RECORDS = 5  # the verdict counts a category from 5 reviewed test items
 
 # Exclusion reasons, in the order they are checked.
 REASON_NOT_QA = "not_qa_pair"
@@ -190,6 +191,25 @@ def cross_partition_duplicates(partitions: dict[str, list[Example]]) -> int:
     )
 
 
+def conflicting_answers(examples: Sequence[Example]) -> tuple[int, int]:
+    """(questions that have more than one distinct answer, records holding those questions)."""
+    answers: dict[str, list[str]] = {}
+    for e in examples:
+        answer = sha256_hex(normalize_for_dedup(e.record.answer or ""))
+        answers.setdefault(question_key(e.record), []).append(answer)
+    conflicting = [found for found in answers.values() if len(set(found)) > 1]
+    return len(conflicting), sum(len(found) for found in conflicting)
+
+
+def categories_without_test_items(partitions: dict[str, list[Example]]) -> list[str]:
+    """Categories with at least CATEGORY_MIN_RECORDS included records and none in test."""
+    totals = Counter(
+        e.record.category for part in partitions.values() for e in part if e.record.category
+    )
+    in_test = {e.record.category for e in partitions["test"]}
+    return sorted(c for c, n in totals.items() if n >= CATEGORY_MIN_RECORDS and c not in in_test)
+
+
 def _warnings(plan: DatasetPlan, sizes: Counter[str], config: DatasetConfig) -> list[BuildWarning]:
     warnings: list[BuildWarning] = []
     included = sum(sizes.values())
@@ -229,6 +249,32 @@ def _warnings(plan: DatasetPlan, sizes: Counter[str], config: DatasetConfig) -> 
                     f"{leaks} record(s) share an identical normalized question with a record in "
                     "another partition (their explicit groups differ). The test set may overstate "
                     "quality."
+                ),
+            )
+        )
+    questions, records = conflicting_answers([e for p in plan.partitions.values() for e in p])
+    if questions:
+        warnings.append(
+            BuildWarning(
+                code="conflicting_answers",
+                message=(
+                    f"{questions} question(s) appear with different approved answers "
+                    f"({records} records). Training on contradictory answers teaches the "
+                    "model neither; reject all but one answer per question in Review."
+                ),
+            )
+        )
+    untested = categories_without_test_items(plan.partitions)
+    if untested:
+        shown = ", ".join(untested[:5]) + (", …" if len(untested) > 5 else "")
+        warnings.append(
+            BuildWarning(
+                code="category_without_test_items",
+                message=(
+                    f"{len(untested)} categor{'y has' if len(untested) == 1 else 'ies have'} "
+                    f"no test examples ({shown}), so the evaluation says nothing about "
+                    "them. A different seed, or more approved records in those categories, "
+                    "can change that."
                 ),
             )
         )

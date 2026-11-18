@@ -111,6 +111,8 @@ def test_hf_training_args(tmp_path: Path) -> None:
     assert args["greater_is_better"] is False and args["use_cpu"] is True
     assert args["bf16"] is False and args["fp16"] is False  # C10: explicit, never TRL's default
     assert args["max_length"] == training.max_seq_length
+    assert args["warmup_steps"] == 0.05
+    assert args["save_total_limit"] == 3
     cuda_q = BackendSelection(
         backend=Backend.HF_PEFT, device="cuda", precision="qlora_4bit", reason="t"
     )
@@ -216,6 +218,14 @@ def test_preflight_other_failures(built_home: Path, monkeypatch: pytest.MonkeyPa
     assert _status(_preflight(built_home, _config(), allow_download=True))["model_files"] == "warn"
     late = _config(training={"eval_every_steps": 500})
     assert _status(_preflight(built_home, late))["validation"] == "warn"
+
+
+def test_preflight_checks_max_seq_length_against_the_dataset(built_home: Path) -> None:
+    assert _status(_preflight(built_home, _config()))["max_seq_length"] == "pass"
+    short = _preflight(built_home, _config(training={"max_seq_length": 64}))
+    failed = {c.name: c for c in short.checks if c.status.value == "fail"}
+    assert not short.ok and "80 tokens" in failed["max_seq_length"].message
+    assert "1024" in failed["max_seq_length"].fix
 
 
 def test_preflight_without_a_dataset(tmp_path: Path) -> None:

@@ -109,6 +109,20 @@ def list_data_sources(conn: sqlite3.Connection) -> list[sqlite3.Row]:
     ).fetchall()
 
 
+def purge_data_source(conn: sqlite3.Connection, source_id: str) -> int:
+    """Delete a data source row and its review decisions. Returns the decisions removed."""
+    with conn:
+        removed = conn.execute(
+            "DELETE FROM review_decisions WHERE workspace_id = ? AND source_id = ?",
+            (WORKSPACE_ID, source_id),
+        ).rowcount
+        conn.execute(
+            "DELETE FROM data_sources WHERE workspace_id = ? AND id = ?",
+            (WORKSPACE_ID, source_id),
+        )
+    return removed
+
+
 # --------------------------------------------------------------------------- review decisions
 
 
@@ -145,7 +159,7 @@ def latest_review_decisions(
         return {}
     placeholders = ",".join("?" for _ in source_ids)
     rows = conn.execute(
-        "SELECT d.source_id, d.record_id, d.content_hash, d.status, d.reason, d.origin, d.created_at "
+        "SELECT d.id, d.source_id, d.record_id, d.content_hash, d.status, d.reason, d.origin, d.created_at "
         "FROM review_decisions d JOIN (SELECT MAX(id) AS id FROM review_decisions "
         f"WHERE workspace_id = ? AND source_id IN ({placeholders}) GROUP BY source_id, record_id) "
         "latest ON latest.id = d.id",

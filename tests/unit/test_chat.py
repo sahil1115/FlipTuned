@@ -25,6 +25,7 @@ from fliptuned.services import chat
 from fliptuned.services import jobs as jobs_service
 from fliptuned.services.datasets import BuildDatasetRequest, build_dataset
 from fliptuned.services.jobs import JobFailedError
+from fliptuned.training.backends.base import ContextTooLongError
 from tests.helpers.pipeline import SAMPLE_DATASET, ingest_samples, use_fake_tokenizer
 from tests.helpers.runs import FakeBackend, make_run
 
@@ -117,6 +118,47 @@ def test_chat_session_round_trip(home: Path, fake: FakeBackend) -> None:
         assert SECRET_QUESTION not in content and "tuned reply" not in content, path.name
     events, _ = read_events(job_dir(AppPaths(home), session.job_id) / "events.jsonl")
     assert [e["state"] for e in events if e["type"] == "chat"] == ["ready", "closed"]
+
+
+def test_generation_error_is_reported_and_the_session_survives(
+    home: Path, fake: FakeBackend, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_id = make_run(home)
+    session = _start(home, run_id)
+    original = fake.stream
+
+    def boom(loaded, messages, config):
+        raise RuntimeError("SECRET text")
+        yield  # makes this a generator, like the real stream
+
+    monkeypatch.setattr(fake, "stream", boom)
+    turns = [{"role": "user", "content": "Hi?"}]
+    with pytest.raises(chat.ChatSessionError) as info:
+        list(session.reply(turns))
+    assert "RuntimeError" in info.value.message and "SECRET" not in info.value.message
+    monkeypatch.setattr(fake, "stream", original)
+    assert "".join(session.reply(turns)) == "tuned reply"
+    session.close()
+    assert jobs_service.get_job(str(home), session.job_id).status == "succeeded"
+
+
+def test_finish_reason_reaches_the_client(
+    home: Path, fake: FakeBackend, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run_id = make_run(home)
+    session = _start(home, run_id)
+    turns = [{"role": "user", "content": "Hi?"}]
+    assert "".join(session.reply(turns)) == "tuned reply"
+    assert session.last_finish_reason is None  # the fake backend reports none
+
+    def cut(loaded, messages, config):
+        loaded.extra["last_finish_reason"] = "length"
+        yield "cut off"
+
+    monkeypatch.setattr(fake, "stream", cut)
+    assert "".join(session.reply(turns)) == "cut off"
+    assert session.last_finish_reason == "length"
+    session.close()
 
 
 def test_chat_never_opens_data_files(home: Path, fake: FakeBackend, file_access) -> None:
@@ -308,3 +350,9 @@ def test_cli_chat_one_shot_and_interactive(home: Path, fake: FakeBackend) -> Non
     assert talk.output.count("base reply") == 2 and "(conversation cleared)" in talk.output
     assert len(fake.seen[-1]) == 2  # after /reset: system + one user turn
     assert _lock_holder(home) is None
+
+
+def test_reply_error_messages_never_quote_text() -> None:
+    assert "too long" in chat._reply_error(ContextTooLongError(40000, 512, 32768))
+    assert "out of memory" in chat._reply_error(MemoryError("SECRET"))
+    assert "SECRET" not in chat._reply_error(ValueError("SECRET"))

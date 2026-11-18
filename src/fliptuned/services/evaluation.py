@@ -58,6 +58,7 @@ from fliptuned.evaluation.checks import (
 )
 from fliptuned.evaluation.metrics import (
     EvaluationMetrics,
+    GenerationStats,
     PriorExposure,
     category_results,
     check_summary,
@@ -66,6 +67,7 @@ from fliptuned.evaluation.metrics import (
 )
 from fliptuned.evaluation.regression import load_regression_set
 from fliptuned.evaluation.report import render_report
+from fliptuned.evaluation.similarity import mean_overlap
 from fliptuned.evaluation.verdict import CategoryResult, Criterion, VerdictInputs, decide
 from fliptuned.inference.prompting import chat_messages
 from fliptuned.jobs.state import JobType
@@ -1170,6 +1172,18 @@ def _prior_exposure(paths: AppPaths, evaluation_id: str) -> PriorExposure:
     return PriorExposure(earlier_evaluations=earlier, shared_items=len(hashes), note=note)
 
 
+def _cut_off_note(generation: dict[str, GenerationStats], max_new_tokens: int) -> str | None:
+    cut = {side: stats.finish_reasons.get("length", 0) for side, stats in generation.items()}
+    if not any(cut.values()):
+        return None
+    return (
+        f"{cut.get('base', 0)} base and {cut.get('tuned', 0)} fine-tuned answers reached the "
+        f"limit of {max_new_tokens} new tokens and were cut off (test items and general "
+        "prompts together); raise generation.max_new_tokens in the evaluate config to "
+        "compare complete answers."
+    )
+
+
 def _limitations(
     metrics: EvaluationMetrics, config: EvaluateConfig, exposure: PriorExposure
 ) -> list[str]:
@@ -1189,6 +1203,9 @@ def _limitations(
             f"Only the first {metrics.limited_to} test items were evaluated (--limit); evaluate "
             "the full test set for a verdict you rely on."
         )
+    cut_off = _cut_off_note(metrics.generation, config.generation.max_new_tokens)
+    if cut_off:
+        lines.append(cut_off)
     if exposure.note:
         lines.append(exposure.note)
     return lines
@@ -1253,9 +1270,11 @@ def score_evaluation(request: ScoreRequest) -> ScoreResult:
         limited_to=meta.get("limit"),
     )
     limitations = _limitations(metrics, config, exposure)
+    overlap = mean_overlap(test_rows)
     scored_at = utc_now()
     _write_json(
-        eval_dir / METRICS_FILE, {"scored_at": scored_at, **metrics.model_dump(mode="json")}
+        eval_dir / METRICS_FILE,
+        {"scored_at": scored_at, **metrics.model_dump(mode="json"), "reference_overlap": overlap},
     )
     _write_json(
         eval_dir / VERDICT_FILE,
@@ -1269,7 +1288,9 @@ def score_evaluation(request: ScoreRequest) -> ScoreResult:
         },
     )
     report_path = eval_dir / REPORT_FILE
-    report_path.write_bytes(render_report(metrics, verdict, meta, limitations).encode("utf-8"))
+    report_path.write_bytes(
+        render_report(metrics, verdict, meta, limitations, overlap).encode("utf-8")
+    )
     with connect(paths.db) as conn:
         repositories.update_evaluation(
             conn,

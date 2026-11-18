@@ -104,9 +104,11 @@ function Conversation({ session, onEnd }: { session: Schemas["ChatInfo"]; onEnd:
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const [cutOff, setCutOff] = useState(false);
   const client = useQueryClient();
   const minutes = Math.round((session.idle_timeout_s / 60) * 10) / 10;
   const box = useRef<HTMLOListElement>(null);
+  const abort = useRef<AbortController | null>(null);
 
   // Follow the chat worker: "ready" once the model is loaded; the final status when it's released.
   useEffect(() => {
@@ -146,32 +148,53 @@ function Conversation({ session, onEnd }: { session: Schemas["ChatInfo"]; onEnd:
   async function send() {
     const text = draft.trim();
     if (!text || sending || phase !== "ready") return;
-    const history: Turn[] = [...turns, { role: "user", content: text }];
+    const before = turns;
+    const history: Turn[] = [...before, { role: "user", content: text }];
     setTurns([...history, { role: "assistant", content: "" }]);
     setDraft("");
     setSending(true);
     setError(null);
+    setCutOff(false);
+    const controller = new AbortController();
+    abort.current = controller;
+    const outcome = { received: false, failed: false };
     try {
       const response = await rawFetch(`/api/chat/sessions/${encodeURIComponent(jobId)}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ turns: history }),
+        signal: controller.signal,
       });
       await readSse(response, (event) => {
-        const data = event.data as { text?: string; message?: string };
+        const data = event.data as { text?: string; message?: string; finish_reason?: string | null };
         if (event.event === "delta" && data.text) {
+          outcome.received = true;
           setTurns((list) => {
             const last = list[list.length - 1];
             return last ? [...list.slice(0, -1), { ...last, content: last.content + data.text }] : list;
           });
         } else if (event.event === "error") {
+          outcome.failed = true;
           setError(new ApiError(0, data.message ?? "The model couldn't answer.", "Try again, or load the model again."));
+        } else if (event.event === "done" && data.finish_reason === "length") {
+          setCutOff(true);
         }
       });
     } catch (e) {
-      setError(e);
+      if ((e as Error).name === "AbortError") {
+        outcome.failed = true; // stopped by the user: not an error message
+      } else {
+        outcome.failed = true;
+        setError(e);
+      }
     } finally {
       setSending(false);
+      if (!outcome.received) {
+        // Nothing arrived: drop the question and its empty reply, and put the text back to retry.
+        setTurns(before);
+        setDraft(text);
+        if (!outcome.failed) setError(new ApiError(0, "The model returned an empty answer.", "Try rephrasing the message."));
+      }
     }
   }
 
@@ -208,7 +231,12 @@ function Conversation({ session, onEnd }: { session: Schemas["ChatInfo"]; onEnd:
           </p>
         )}
         {error ? <ErrorPanel error={error} /> : null}
-        <ol ref={box} aria-label="Conversation" className="max-h-[32rem] space-y-3 overflow-y-auto">
+        {cutOff && (
+          <p role="status" className="rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-950 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-100">
+            The reply reached the length limit and was cut off. Ask the model to continue.
+          </p>
+        )}
+        <ol ref={box} aria-label="Conversation" aria-live="polite" aria-busy={sending} className="max-h-[32rem] space-y-3 overflow-y-auto">
           {turns.map((turn, index) => (
             <li
               key={index}
@@ -250,6 +278,11 @@ function Conversation({ session, onEnd }: { session: Schemas["ChatInfo"]; onEnd:
             <Button type="submit" disabled={phase !== "ready" || sending || !draft.trim()}>
               {sending ? "Answering…" : "Send"}
             </Button>
+            {sending && (
+              <Button type="button" variant="secondary" onClick={() => abort.current?.abort()}>
+                Stop
+              </Button>
+            )}
             <span className="text-xs text-slate-600 dark:text-slate-400">Enter sends, Shift+Enter adds a line.</span>
           </div>
         </form>

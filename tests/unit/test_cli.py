@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -27,12 +28,14 @@ IMPLEMENTED = {
     "chat",
     "export",
     "serve",
+    "sources",
 }
 SUBCOMMANDS = {
     "review": ["export", "import"],
     "models": ["list"],
     "jobs": ["list", "follow", "cancel", "resume", "selftest"],
     "configs": ["list", "show", "duplicate"],
+    "sources": ["list", "delete"],
 }
 LEAF_COMMANDS = sorted([c] for c in IMPLEMENTED if c not in SUBCOMMANDS) + [
     [group, sub] for group, subs in SUBCOMMANDS.items() for sub in subs
@@ -93,3 +96,25 @@ def test_errors_are_actionable_and_exit_nonzero(tmp_path: Path) -> None:
 
 def test_unknown_command_is_usage_error() -> None:
     assert runner.invoke(app, ["train"]).exit_code == 2
+
+
+def test_serve_without_the_web_extra_gives_an_install_hint(tmp_path, monkeypatch) -> None:
+    monkeypatch.setitem(sys.modules, "fliptuned.api.server", None)  # makes the import fail
+    result = runner.invoke(app, ["serve", "--no-browser", "--home", str(tmp_path / "home")])
+    assert result.exit_code == 4
+    assert "web' extra" in result.output and "--extra web" in result.output
+
+
+def test_sources_list_and_delete(tmp_path: Path) -> None:
+    home = str(tmp_path / "home")
+    config = Path(__file__).resolve().parents[2] / "configs" / "ingest-synthetic.sample.yaml"
+    ingested = runner.invoke(app, ["ingest", "--config", str(config), "--home", home])
+    assert ingested.exit_code == 0, ingested.output
+    listed = json.loads(runner.invoke(app, ["sources", "list", "--json", "--home", home]).output)
+    name = listed[0]["name"]
+    wrong = runner.invoke(app, ["sources", "delete", name, "--confirm", "no", "--home", home])
+    assert wrong.exit_code == 3 and "nothing was deleted" in wrong.output
+    done = runner.invoke(app, ["sources", "delete", name, "--confirm", name, "--home", home])
+    assert done.exit_code == 0 and "Deleted data source" in done.output
+    after = runner.invoke(app, ["sources", "list", "--json", "--home", home])
+    assert json.loads(after.output) == []

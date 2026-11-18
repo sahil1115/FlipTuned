@@ -26,8 +26,11 @@ from fliptuned.evaluation.checks import (
     expectations_from_reference,
     run_checks,
 )
+from fliptuned.evaluation.metrics import GenerationStats
 from fliptuned.evaluation.regression import load_regression_set
-from fliptuned.evaluation.stats import sign_test
+from fliptuned.evaluation.report import win_rate_line
+from fliptuned.evaluation.similarity import mean_overlap, token_f1
+from fliptuned.evaluation.stats import sign_test, win_rate_interval
 from fliptuned.evaluation.verdict import CategoryResult, VerdictInputs, decide
 from fliptuned.jobs.worker import CANCEL_FILE, job_dir
 from fliptuned.registry import repositories
@@ -69,6 +72,47 @@ def test_sign_test_known_values(wins: int, losses: int, expected: float) -> None
 def test_sign_test_rejects_negative_counts() -> None:
     with pytest.raises(ValueError):
         sign_test(-1, 3)
+
+
+def test_win_rate_interval_known_values() -> None:
+    rate, low, high = win_rate_interval(40, 10)
+    assert rate == 0.8 and low == pytest.approx(0.6696, abs=1e-3)
+    assert high == pytest.approx(0.8876, abs=1e-3)
+    rate, low, high = win_rate_interval(0, 10)
+    assert (rate, low) == (0.0, 0.0) and high == pytest.approx(0.2775, abs=1e-3)
+    assert win_rate_interval(0, 0) is None
+    with pytest.raises(ValueError):
+        win_rate_interval(-1, 3)
+
+
+def test_report_win_rate_line() -> None:
+    assert win_rate_line(40, 10).endswith(
+        "80% (95% Wilson interval 67%–89%; 50% means no difference)"
+    )
+    assert "no pair has a winner yet" in win_rate_line(0, 0)
+
+
+def test_token_f1_and_mean_overlap() -> None:
+    assert token_f1("Use a list.", "use a LIST.") == 1.0
+    assert token_f1("alpha beta", "gamma delta") == 0.0
+    assert token_f1("a b c", "a b d") == pytest.approx(2 / 3)
+    assert token_f1("", "") == 1.0 and token_f1("", "x") == 0.0
+    rows = [
+        {"reference": "a b c", "base": {"output": "x y z"}, "tuned": {"output": "a b c"}},
+        {"reference": None, "base": {"output": "q"}, "tuned": {"output": "q"}},
+    ]
+    assert mean_overlap(rows) == {"items": 1, "base": 0.0, "tuned": 1.0}
+    assert mean_overlap(rows[1:]) is None
+
+
+def test_cut_off_answers_are_a_stated_limitation() -> None:
+    def stats(cut: int) -> GenerationStats:
+        reasons = {"length": cut, "stop": 10 - cut} if cut else {"stop": 10}
+        return GenerationStats(items=10, finish_reasons=reasons, completion_tokens=100, seconds=1.0)
+
+    assert evaluation._cut_off_note({"base": stats(0), "tuned": stats(0)}, 512) is None
+    note = evaluation._cut_off_note({"base": stats(2), "tuned": stats(0)}, 512)
+    assert note is not None and note.startswith("2 base and 0 fine-tuned") and "512" in note
 
 
 # --------------------------------------------------------------------------- checks
@@ -580,6 +624,9 @@ def test_review_sheet_import_and_scoring(home: Path, fake: FakeBackend, tmp_path
     assert (score.judged, score.wins, score.losses, score.ties) == (12, 11, 0, 1)
     assert score.verdict == "inconclusive"  # 12 of 14 reviewed
     metrics = json.loads((Path(score.eval_dir) / "metrics.json").read_text(encoding="utf-8"))
+    assert set(metrics["reference_overlap"]) == {"items", "base", "tuned"}
+    report_text = (Path(score.eval_dir) / "report.md").read_text(encoding="utf-8")
+    assert "Word overlap with the approved answers" in report_text
     assert metrics["judgements_by_origin"] == {"csv": 12}
 
     with pytest.raises(ConfigError, match="not run"):

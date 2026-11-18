@@ -214,8 +214,130 @@ describe("Chat", () => {
     await waitFor(() => expect(input).toBeEnabled());
     await userEvent.type(input, "Hi?{Enter}");
     expect(await screen.findByText("Hello there")).toBeInTheDocument();
+    const conversation = screen.getByRole("list", { name: "Conversation" });
+    expect(conversation).toHaveAttribute("aria-live", "polite");
+    await waitFor(() => expect(conversation).toHaveAttribute("aria-busy", "false"));
     expect(sent).toEqual({ turns: [{ role: "user", content: "Hi?" }] });
     expect(screen.getByRole("note")).toBeInTheDocument(); // the banner stays
+  });
+
+  it("says when a reply was cut off", async () => {
+    window.location.hash = "#/chat?run=run_1";
+    mockServer({
+      "GET /api/history": [RUN],
+      "GET /api/jobs": { jobs: [], model_lock_holder: null, reconciled: [] },
+      "POST /api/chat/sessions": {
+        run_id: "run_1",
+        model: "tiny-qwen2",
+        base: false,
+        backend: "hf_peft",
+        device: "cpu",
+        precision: "fp32",
+        idle_timeout_s: 600,
+        job: { id: "job_c" },
+      },
+      "GET /api/jobs/job_c/events": () => ({
+        sse: 'event: chat\ndata: {"seq": 3, "type": "chat", "state": "ready"}\n\n',
+      }),
+      "GET /api/jobs/job_c": { id: "job_c", status: "running" },
+      "POST /api/chat/sessions/job_c/messages": () => ({
+        sse: 'event: delta\ndata: {"text": "Hello"}\n\nevent: done\ndata: {"finish_reason": "length"}\n\n',
+      }),
+    });
+    wrap(<Chat />);
+    await userEvent.click(await screen.findByRole("button", { name: "Load the model and chat" }));
+    const input = await screen.findByLabelText("Message");
+    await waitFor(() => expect(input).toBeEnabled());
+    await userEvent.type(input, "Hi?{Enter}");
+    expect(await screen.findByText("Hello")).toBeInTheDocument();
+    expect(await screen.findByText(/reached the length limit/)).toBeInTheDocument();
+  });
+
+  it("recovers after a failed reply", async () => {
+    window.location.hash = "#/chat?run=run_1";
+    const bodies: unknown[] = [];
+    mockServer({
+      "GET /api/history": [RUN],
+      "GET /api/jobs": { jobs: [], model_lock_holder: null, reconciled: [] },
+      "POST /api/chat/sessions": {
+        run_id: "run_1",
+        model: "tiny-qwen2",
+        base: false,
+        backend: "hf_peft",
+        device: "cpu",
+        precision: "fp32",
+        idle_timeout_s: 600,
+        job: { id: "job_c" },
+      },
+      "GET /api/jobs/job_c/events": () => ({
+        sse: 'event: chat\ndata: {"seq": 3, "type": "chat", "state": "ready"}\n\n',
+      }),
+      "GET /api/jobs/job_c": { id: "job_c", status: "running" },
+      "POST /api/chat/sessions/job_c/messages": (_u: URL, body: string) => {
+        bodies.push(JSON.parse(body));
+        return bodies.length === 1
+          ? { sse: 'event: error\ndata: {"message": "The model failed to answer (RuntimeError)."}\n\n' }
+          : { sse: 'event: delta\ndata: {"text": "Hello"}\n\nevent: done\ndata: {}\n\n' };
+      },
+    });
+    wrap(<Chat />);
+    await userEvent.click(await screen.findByRole("button", { name: "Load the model and chat" }));
+    const input = await screen.findByLabelText("Message");
+    await waitFor(() => expect(input).toBeEnabled());
+    await userEvent.type(input, "Hi?{Enter}");
+    expect(await screen.findByText(/failed to answer/)).toBeInTheDocument();
+    await waitFor(() => expect(input).toHaveValue("Hi?"));
+    await userEvent.type(input, "{Enter}");
+    expect(await screen.findByText("Hello")).toBeInTheDocument();
+    expect(bodies[1]).toEqual({ turns: [{ role: "user", content: "Hi?" }] });
+  });
+
+  it("stops a reply on request", async () => {
+    window.location.hash = "#/chat?run=run_1";
+    mockServer({
+      "GET /api/history": [RUN],
+      "GET /api/jobs": { jobs: [], model_lock_holder: null, reconciled: [] },
+      "POST /api/chat/sessions": {
+        run_id: "run_1",
+        model: "tiny-qwen2",
+        base: false,
+        backend: "hf_peft",
+        device: "cpu",
+        precision: "fp32",
+        idle_timeout_s: 600,
+        job: { id: "job_c" },
+      },
+      "GET /api/jobs/job_c/events": () => ({
+        sse: 'event: chat\ndata: {"seq": 3, "type": "chat", "state": "ready"}\n\n',
+      }),
+      "GET /api/jobs/job_c": { id: "job_c", status: "running" },
+    });
+    const inner = globalThis.fetch;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
+        const request = input instanceof Request ? input : new Request(String(input), init);
+        if (!request.url.endsWith("/messages")) return inner(input, init);
+        const signal = init.signal ?? request.signal;
+        const stream = new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode('event: delta\ndata: {"text": "Hel"}\n\n'));
+            signal.addEventListener("abort", () => controller.error(new DOMException("Aborted", "AbortError")));
+          },
+        });
+        return new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } });
+      }),
+    );
+    wrap(<Chat />);
+    await userEvent.click(await screen.findByRole("button", { name: "Load the model and chat" }));
+    const input = await screen.findByLabelText("Message");
+    await waitFor(() => expect(input).toBeEnabled());
+    await userEvent.type(input, "Hi?{Enter}");
+    expect(await screen.findByText("Hel")).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("button", { name: "Stop" }));
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Stop" })).not.toBeInTheDocument());
+    expect(screen.getByText("Hel")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
 

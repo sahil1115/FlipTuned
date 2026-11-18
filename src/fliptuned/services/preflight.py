@@ -282,6 +282,41 @@ def run_preflight(
     # ---- steps and CPU time
     plan: StepPlan | None = None
     if manifest is not None and selection is not None and training is not None:
+        longest = max(
+            (
+                stats.max
+                for name, stats in manifest.tokens.items()
+                if name in ("train", "valid") and stats is not None
+            ),
+            default=0,
+        )
+        if longest <= training.max_seq_length:
+            checks.append(
+                _check(
+                    "max_seq_length",
+                    P,
+                    f"Every training example fits in {training.max_seq_length} tokens "
+                    f"(longest: {longest}).",
+                )
+            )
+        else:
+            opted_in = (
+                manifest.truncate_long_records
+                and training.max_seq_length >= manifest.max_seq_length
+            )
+            checks.append(
+                _check(
+                    "max_seq_length",
+                    W if opted_in else F,
+                    f"The longest training example has {longest} tokens, but "
+                    f"training.max_seq_length is {training.max_seq_length}: longer examples "
+                    "are cut off mid-answer.",
+                    "Rebuild the dataset without truncate_long_records to set long records aside."
+                    if opted_in
+                    else f"Set training.max_seq_length to {manifest.max_seq_length} "
+                    "(the dataset's value) or higher.",
+                )
+            )
         try:
             plan = plan_steps(selection.backend, manifest.counts.partitions["train"], training)
             checks.append(

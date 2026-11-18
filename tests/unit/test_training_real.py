@@ -123,6 +123,9 @@ def test_tiny_cpu_training_job(tmp_path: Path) -> None:
     out = _cancel_resume_finish(tmp_path, "tiny-qwen2", {"backend": "hf_peft", "device": "cpu"})
     assert out["meta"]["backend"] == "hf_peft" and out["meta"]["device"] == "cpu"
     assert "optimizer, scheduler, RNG" in out["result"].resume_note
+    checkpoints = Path(out["result"].adapter_path).parent / "checkpoints"
+    kept = [p.name for p in checkpoints.glob("checkpoint-*")]
+    assert 1 <= len(kept) <= 3, kept  # save_total_limit: older checkpoints are deleted
     print(f"\npeak memory: {out['result'].peak_memory_gb} GB")
 
 

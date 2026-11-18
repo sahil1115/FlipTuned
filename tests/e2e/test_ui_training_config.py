@@ -105,14 +105,18 @@ def test_training_config_and_preflight_in_the_ui(server: dict) -> None:
         expect(checks.get_by_text(re.compile("above the CPU training limit"))).to_be_visible(
             timeout=120_000
         )
-        expect(checks.get_by_text(re.compile(r"What to do: Use a model of about 1B"))).to_be_visible()
+        expect(
+            checks.get_by_text(re.compile(r"What to do: Use a model of about 1B"))
+        ).to_be_visible()
         expect(page.get_by_role("button", name="Start training")).to_be_disabled()
         page.screenshot(path=str(SHOTS / "preflight-fail.png"), full_page=True)
 
         # Preflight of the tiny config: real results, nothing fails, Start enabled (not clicked)
         page.get_by_label("Training config").select_option("e2e-quick")
         expect(page.get_by_text(re.compile(r"^Ready to train"))).to_be_visible(timeout=120_000)
-        expect(checks.get_by_text(re.compile(r"Chat-template prefix test on \d+ training"))).to_be_visible()
+        expect(
+            checks.get_by_text(re.compile(r"Chat-template prefix test on \d+ training"))
+        ).to_be_visible()
         expect(page.get_by_role("button", name="Start training")).to_be_enabled()
         page.screenshot(path=str(SHOTS / "preflight-pass.png"), full_page=True)
 
@@ -120,7 +124,9 @@ def test_training_config_and_preflight_in_the_ui(server: dict) -> None:
         nav.get_by_role("link", name="Dashboard").click()
         configs_card = page.get_by_role("region", name="Training configs")
         expect(configs_card.get_by_text("e2e-big v2")).to_be_visible()
-        expect(page.get_by_role("region", name="Models").get_by_text("In the catalog")).to_be_visible()
+        expect(
+            page.get_by_role("region", name="Models").get_by_text("In the catalog")
+        ).to_be_visible()
         page.get_by_role("button", name="Dark theme").click()
         page.screenshot(path=str(SHOTS / "dashboard-dark.png"), full_page=True)
         browser.close()

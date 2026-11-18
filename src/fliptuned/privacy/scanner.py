@@ -41,6 +41,19 @@ BUILTIN_PATTERNS: tuple[Pattern, ...] = (
         "account_key", re.compile(r"(?i)\b(?:AccountKey|SharedAccessKey)=([A-Za-z0-9+/=]{20,})"), 1
     ),
     Pattern(
+        "url_credentials",
+        re.compile(r"(?i)\b(?:https?|ftp|sftp|ssh)://[^\s:@/]+:([^\s@/]+)@"),
+        value_group=1,
+    ),
+    Pattern("hf_token", re.compile(r"\bhf_[A-Za-z0-9]{30,}\b")),
+    Pattern("gitlab_token", re.compile(r"\bglpat-[A-Za-z0-9_-]{20,}")),
+    Pattern("stripe_key", re.compile(r"\b[sr]k_live_[A-Za-z0-9]{20,}")),
+    Pattern(
+        "bearer_token",
+        re.compile(r"(?i)\bBearer\s+([A-Za-z0-9._~+/-]{20,}=*)"),
+        value_group=1,
+    ),
+    Pattern(
         "password_assignment",
         re.compile(
             # key names such as password, db_password, SECRET_KEY, apiKey, auth-token
